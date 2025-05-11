@@ -1,7 +1,27 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React,{useEffect, useRef} from "react";
+import { Link,useNavigate } from "react-router-dom";
+
+
 
 export default function Login() {
+    const navigate = useNavigate()
+    const {user,loginUser}=useAuth()
+
+    useEffect(()=>{
+      if('user'){
+        navigate('/dashboard')
+      }
+    })
+    const loginForm = useRef(null)
+
+    const handleSubmit = (e) =>{
+      e.preventDefault();
+      const email = loginForm.current.email.value
+      const password = loginForm.current.password.value
+
+      const userInfo = {email,password}
+      loginUser(userInfo)
+    }
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e9ecf4] via-[#f2edf8] to-[#eaf6eb]">
       <div className="text-center mb-6">
@@ -18,7 +38,7 @@ export default function Login() {
           Sign in to continue your mental wellness journey
         </p>
 
-        <form>
+        <form  >
           <div className="mb-4 text-left">
             <label className="block text-sm font-medium mb-1 text-gray-700">Email</label>
             <input
