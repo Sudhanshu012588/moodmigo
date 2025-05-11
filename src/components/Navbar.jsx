@@ -5,7 +5,7 @@ const Navbar = () => {
     <nav className="flex justify-between items-center px-6 py-4 shadow-sm bg-white">
       {/* Logo */}
       <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text">
-        Mentaid
+        MoodMigo
       </div>
 
       {/* Navigation Links */}
