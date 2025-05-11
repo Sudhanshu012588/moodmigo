@@ -1,27 +1,41 @@
-import React,{useEffect, useRef} from "react";
-import { Link,useNavigate } from "react-router-dom";
-
-
+import React, { useState } from "react";
+import { account } from "../appwrite/config";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
-    const navigate = useNavigate()
-    const {user,loginUser}=useAuth()
+  const navigate = useNavigate();
 
-    useEffect(()=>{
-      if('user'){
-        navigate('/dashboard')
-      }
-    })
-    const loginForm = useRef(null)
+  const [user, setUser] = useState({
+    email: "",
+    password: ""
+  });
 
-    const handleSubmit = (e) =>{
-      e.preventDefault();
-      const email = loginForm.current.email.value
-      const password = loginForm.current.password.value
+  const handleChange = (e) => {
+    setUser({
+      ...user,
+      [e.target.name]: e.target.value
+    });
+  };
 
-      const userInfo = {email,password}
-      loginUser(userInfo)
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent page refresh
+
+    if (!user.email || !user.password) {
+      alert("Please enter both email and password");
+      return;
     }
+
+    try {
+      const session = await account.createEmailPasswordSession(user.email, user.password);
+      console.log(session);
+      alert("Login successful!");
+      navigate("/dashboard"); // Navigate after successful login
+    } catch (error) {
+      console.error(error);
+      alert("Error logging in: " + error.message);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e9ecf4] via-[#f2edf8] to-[#eaf6eb]">
       <div className="text-center mb-6">
@@ -38,12 +52,15 @@ export default function Login() {
           Sign in to continue your mental wellness journey
         </p>
 
-        <form  >
+        <form onSubmit={handleSubmit}>
           <div className="mb-4 text-left">
             <label className="block text-sm font-medium mb-1 text-gray-700">Email</label>
             <input
+              name="email"
               type="email"
               placeholder="Enter your email"
+              value={user.email}
+              onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
             />
           </div>
@@ -56,8 +73,11 @@ export default function Login() {
               </Link>
             </div>
             <input
+              name="password"
               type="password"
               placeholder="Enter your password"
+              value={user.password}
+              onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
             />
           </div>

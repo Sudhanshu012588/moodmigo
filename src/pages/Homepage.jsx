@@ -9,11 +9,19 @@ function Homepage() {
   return (
 
     <>
-        <Navbar/>
+      <div className="fixed top-0 left-0 w-full z-50">
+  <Navbar />
+</div>
+
         <Hero/>
+        <div id='services'>
+
         <ServicesSection/>
+        </div>
         <PremiumPage/>
-        <AboutPage/>
+
+        <div id='about'>
+        <AboutPage/></div>
         <Footer/>
     </>
   )

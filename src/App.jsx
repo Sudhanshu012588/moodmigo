@@ -4,20 +4,19 @@ import Homepage from './pages/Homepage'
 import Login from './pages/Login';
 import Signup from './pages/Signup';  
 import Dashboard from './pages/Dashboard';
-import PrivateRoute from "./utils/PrivateRoute";
 
-import { AuthProvider } from "./utils/AuthContyext";
+
 function App() {
-
+  const token = localStorage.getItem("token");
   return (
     <>
       <BrowserRouter>
 
         <Routes>
           <Route path="/" element={<Homepage/>} />
-          <Route path='/login' element={<Login/>} />
-          <Route path='/signup' element={<Signup/>} />
-          <Route path='/dashboard' element={<Dashboard/>} />
+          {token ? <Route path='login' element={<Dashboard/>} /> : <Route path='login' element={<Login/>} />}
+          {token ? <Route path='signup' element={<Dashboard/>} /> : <Route path='signup' element={<Signup/>} />}
+         
 
         </Routes>
       </BrowserRouter>
