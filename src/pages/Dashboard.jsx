@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     Headphones,
     Calendar,
@@ -12,7 +12,9 @@ import {
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { account } from '../appwrite/config';
-
+import { Navigate } from 'react-router-dom';
+import {fetchUser} from '../appwrite/Auth';
+import { set } from 'date-fns/set';
 
 // Mock data for demonstration
 const upcomingSessions = [
@@ -46,16 +48,14 @@ const journalEntries = [
 ];
 
 const Dashboard = () => {
-const [user, setuser] = useState("")
-  account.get()
-    .then((response) => {
-      const user = response.name;
-      setuser(user);
-        console.log(user);
+        const [user, setuser] = useState("")
+    useEffect(() => {
+
+        fetchUser().then((response)=>{
+            setuser(response.name);
+        })
     })
-    .catch((error) => {
-        console.error(error);
-    });
+
     return (
         <div
             className="min-h-screen bg-white p-4 sm:p-6 lg:p-8"

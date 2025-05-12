@@ -1,27 +1,33 @@
-import { BrowserRouter, Routes, Route, Router } from "react-router-dom";
-import './App.css'
-import Homepage from './pages/Homepage'
-import Login from './pages/Login';
-import Signup from './pages/Signup';  
-import Dashboard from './pages/Dashboard';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Homepage from "./pages/Homepage";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import PrivateRoute from "./components/PrivateRoute";
 
-
-function App() {
+const App = () => {
   const token = localStorage.getItem("token");
+
   return (
-    <>
-      <BrowserRouter>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Homepage />} />
 
-        <Routes>
-          <Route path="/" element={<Homepage/>} />
-          {token ? <Route path='login' element={<Dashboard/>} /> : <Route path='login' element={<Login/>} />}
-          {token ? <Route path='signup' element={<Dashboard/>} /> : <Route path='signup' element={<Signup/>} />}
-         {token ? <Route path='dashboard' element={<Dashboard/>} /> : <Route path='dashboard' element={<Login/>} />}
+      
+        {/* Redirect to dashboard if already logged in */}
+        <Route 
+          path="/login" 
+          element={token ? <Navigate to="/dashboard" /> : <Login />} 
+        />
+        <Route 
+          path="/signup" 
+          element={token ? <Navigate to="/dashboard" /> : <Signup />} 
+        />
+        {token?<Route path="/dashboard" element={<Dashboard />} />:null}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
 
-        </Routes>
-      </BrowserRouter>
-    </>
-  )
-}
-
-export default App
+export default App;
