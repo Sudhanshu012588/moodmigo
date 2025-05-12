@@ -8,10 +8,7 @@ import Homepage from "./pages/Homepage";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-
 const App = () => {
-  const token = localStorage.getItem("token");
-
   return (
     <>
      <ToastContainer

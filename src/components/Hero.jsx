@@ -1,6 +1,7 @@
 import React from 'react';
-
+import { useNavigate } from 'react-router-dom';
 const Hero = () => {
+  const navigator = useNavigate();
   return (
     <section className="relative bg-[#f5f6fc] overflow-hidden min-h-screen flex items-center justify-center px-4">
       {/* Background Wave SVG */}
@@ -24,7 +25,9 @@ const Hero = () => {
           to guide you through your mental wellness journey.
         </p>
         <div className="mt-8 flex justify-center gap-4 flex-wrap">
-          <button className="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300">
+          <button className="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300"
+            onClick={() => navigator('/signup')}
+          >
             Get Started
           </button>
           <button className="border border-purple-500 text-purple-600 font-semibold py-2 px-6 rounded-lg hover:bg-purple-50 transition duration-300">

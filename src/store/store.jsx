@@ -1,6 +1,7 @@
+import { de } from 'date-fns/locale/de';
 import {create} from 'zustand';
 
-const useStore = create((set) => ({
+ const useStore = create((set) => ({
   User: {  // Change 'user' to 'User'
     id: "",
     name: "",
@@ -9,5 +10,5 @@ const useStore = create((set) => ({
   },
   setUser: (newUser) => set((state) => ({ User: { ...state.User, ...newUser } })), // Change 'user' to 'User'
 }));
-
 export default useStore;
+
