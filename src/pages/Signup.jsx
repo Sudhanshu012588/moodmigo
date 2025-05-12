@@ -3,6 +3,7 @@ import { Link, NavigationType } from "react-router-dom";
 import { account, ID } from "../appwrite/config";
 import { login, signup } from "../appwrite/Auth";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 
 
@@ -37,7 +38,9 @@ export default function Signup() {
       return;
     }
 
-    await signup(user.name, user.email, user.password).then(navigator('/')).catch((error)=>{console.log(error)})
+    await signup(user.name, user.email, user.password).then(()=>{
+      toast.success("Account created successfully Login to continue");
+      navigator('/')}).catch((error)=>{toast.error("Account creation failed. Please check your credentials.")})
   };
 // const handleSubmit = async (e) => {
 //   e.preventDefault();

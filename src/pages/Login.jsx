@@ -3,6 +3,7 @@ import { account } from "../appwrite/config";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../appwrite/Auth";
 import { ID } from "appwrite";
+import { toast } from "react-toastify";
 const Login = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState({
@@ -23,11 +24,11 @@ const Login = () => {
 
    login(user.email, user.password)
       .then(() => {
+        toast.success("Login successful!");
         navigate("/dashboard");
       })
       .catch((error) => {
-        console.error("Login error:", error);
-        alert("Failed to log in: " + error.message);
+        toast.error("Login failed. Please check your credentials.");
       });
   };
 
