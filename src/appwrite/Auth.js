@@ -1,4 +1,4 @@
-import {account} from './config';
+import {account,ID} from './config';
 import { Navigate } from 'react-router-dom';
 export const login = async (email, password) => {
     if (!email || !password) {
@@ -28,9 +28,7 @@ export const signup = async (name, email, password) => {
     try {
         const user = await account.create(ID.unique(), email, password, name);
         console.log("User created:", user);
-        const { jwt } = await account.createJWT();
-            localStorage.setItem("token", jwt);
-            Navigate("/dashboard");
+        await account.deleteSession('current');
         return user;
     } catch (error) {
         console.error("Signup error:", error);

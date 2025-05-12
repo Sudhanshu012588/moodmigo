@@ -1,8 +1,13 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavigationType } from "react-router-dom";
 import { account, ID } from "../appwrite/config";
+import { login, signup } from "../appwrite/Auth";
+import { useNavigate } from "react-router-dom";
+
+
 
 export default function Signup() {
+  const navigator = useNavigate()
   const [user, setUser] = useState({
     name: "",
     email: "",
@@ -32,18 +37,41 @@ export default function Signup() {
       return;
     }
 
-    await account.create(ID.unique(), email, password, name)
-      .then((response) => {
-        console.log(response);
-        alert("User created successfully");
-        // Optional: redirect to login page or dashboard
-      })
-      .catch((error) => {
-        console.error(error);
-        alert("Error creating user: " + error.message);
-      });
+    await signup(user.name, user.email, user.password).then(navigator('/')).catch((error)=>{console.log(error)})
   };
+// const handleSubmit = async (e) => {
+//   e.preventDefault();
 
+//   const { name, email, password, confirmPassword } = user;
+
+//   if (!name || !email || !password || !confirmPassword) {
+//     alert("Please fill all the fields");
+//     return;
+//   }
+
+//   if (password !== confirmPassword) {
+//     alert("Passwords do not match");
+//     return;
+//   }
+
+//   try {
+//     // Sign up the user
+//     await signup(name, email, password);
+
+//     // Log in the user immediately after signup
+//     await account.createEmailSession(email, password);
+
+//     // Optional: Fetch the current user (for confirmation or display)
+//     const currentUser = await account.get();
+//     console.log("Logged in as:", currentUser);
+
+//     // Redirect to dashboard
+//     navigator("/dashboard");
+//   } catch (err) {
+//     console.error("Signup or login failed:", err);
+//     alert(err.message);
+//   }
+// };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e9ecf4] via-[#f2edf8] to-[#eaf6eb]">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md mx-4">

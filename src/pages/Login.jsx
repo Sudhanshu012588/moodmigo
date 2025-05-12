@@ -22,7 +22,7 @@ const Login = () => {
     e.preventDefault();
 
    login(user.email, user.password)
-      .then((response) => {
+      .then(() => {
         navigate("/dashboard");
       })
       .catch((error) => {
