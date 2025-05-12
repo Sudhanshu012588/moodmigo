@@ -41,7 +41,7 @@ export default function Signup() {
 
     await signup(user.name, user.email, user.password).then(()=>{
       toast.success("Account created successfully Login to continue");
-      navigator('/')}).catch((error)=>{toast.error("Account creation failed. Please check your credentials.")})
+      navigator('/')}).catch((error)=>{toast.error("Account creation failed.",error)})
   };
 // const handleSubmit = async (e) => {
 //   e.preventDefault();
