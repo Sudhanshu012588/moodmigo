@@ -1,9 +1,11 @@
+// App.jsx
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import Homepage from "./pages/Homepage";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import PrivateRoute from "./components/PrivateRoute";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -12,9 +14,24 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Homepage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Dashboard/>}/>
+
+        <Route
+          path="/dashboard"
+          element={token ? <Dashboard /> : <Navigate to="/login" />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/signup"
+          element={ <Signup />}
+        />
+
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );

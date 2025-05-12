@@ -5,13 +5,6 @@ import { login } from "../appwrite/Auth";
 import { ID } from "appwrite";
 const Login = () => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if(token) {
-      navigate("/dashboard");
-    }
-  }, []);
   const [user, setUser] = useState({
     email: "",
     password: ""
