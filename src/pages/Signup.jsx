@@ -41,41 +41,8 @@ export default function Signup() {
 
     await signup(user.name, user.email, user.password).then(()=>{
       toast.success("Account created successfully, Login to continue");
-      navigator('/')}).catch((error)=>{toast.error("Account creation failed.",error)})
+      navigator('/')}).catch((error)=>{toast.error(error.message)});
   };
-// const handleSubmit = async (e) => {
-//   e.preventDefault();
-
-//   const { name, email, password, confirmPassword } = user;
-
-//   if (!name || !email || !password || !confirmPassword) {
-//     alert("Please fill all the fields");
-//     return;
-//   }
-
-//   if (password !== confirmPassword) {
-//     alert("Passwords do not match");
-//     return;
-//   }
-
-//   try {
-//     // Sign up the user
-//     await signup(name, email, password);
-
-//     // Log in the user immediately after signup
-//     await account.createEmailSession(email, password);
-
-//     // Optional: Fetch the current user (for confirmation or display)
-//     const currentUser = await account.get();
-//     console.log("Logged in as:", currentUser);
-
-//     // Redirect to dashboard
-//     navigator("/dashboard");
-//   } catch (err) {
-//     console.error("Signup or login failed:", err);
-//     alert(err.message);
-//   }
-// };
   return (
     <>
     <Navbar/>
