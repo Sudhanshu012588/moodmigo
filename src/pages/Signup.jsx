@@ -4,6 +4,7 @@ import { account, ID } from "../appwrite/config";
 import { login, signup } from "../appwrite/Auth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Navbar from "../components/Navbar";
 
 
 
@@ -76,6 +77,8 @@ export default function Signup() {
 //   }
 // };
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e9ecf4] via-[#f2edf8] to-[#eaf6eb]">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md mx-4">
         <div className="text-center mb-4">
@@ -101,7 +104,7 @@ export default function Signup() {
               onChange={handleChange}
               placeholder="Enter your Name"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
+              />
           </div>
           <div className="mb-4 text-left">
             <label className="block text-sm font-medium mb-1 text-gray-700">Email</label>
@@ -112,7 +115,7 @@ export default function Signup() {
               onChange={handleChange}
               placeholder="Enter your email"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
+              />
           </div>
           <div className="mb-4 text-left">
             <label className="block text-sm font-medium mb-1 text-gray-700">Password</label>
@@ -123,7 +126,7 @@ export default function Signup() {
               onChange={handleChange}
               placeholder="Enter your Password"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
+              />
           </div>
           <div className="mb-4 text-left">
             <label className="block text-sm font-medium mb-1 text-gray-700">Confirm Password</label>
@@ -134,13 +137,13 @@ export default function Signup() {
               onChange={handleChange}
               placeholder="Confirm your Password"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
-            />
+              />
           </div>
 
           <button
             type="submit"
             className="w-full bg-purple-500 text-white font-semibold py-2 rounded-md hover:bg-purple-600 transition duration-200"
-          >
+            >
             Sign Up
           </button>
         </form>
@@ -153,5 +156,6 @@ export default function Signup() {
         </p>
       </div>
     </div>
+            </>
   );
 }

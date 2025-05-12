@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { login } from "../appwrite/Auth";
 import { ID } from "appwrite";
 import { toast } from "react-toastify";
+import Navbar from "../components/Navbar";
 const Login = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState({
@@ -33,6 +34,8 @@ const Login = () => {
   };
 
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e9ecf4] via-[#f2edf8] to-[#eaf6eb]">
       <div className="text-center mb-6">
         <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-500">
@@ -96,6 +99,7 @@ const Login = () => {
         </p>
       </div>
     </div>
+    </>
   );
 };
 
