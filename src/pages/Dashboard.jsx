@@ -10,14 +10,8 @@ import {
     PenSquare,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { account } from '../appwrite/config';
-import { Navigate } from 'react-router-dom';
-import {fetchUser} from '../appwrite/Auth';
-import { set } from 'date-fns/set';
 import Navbar from '../components/Navbar';
-
-// Mock data for demonstration
+import useStore from '../store/store';
 const upcomingSessions = [
     {
         id: '1',
@@ -47,16 +41,9 @@ const journalEntries = [
             "This week has been challenging but I'm proud of how I've been managing stress. The techniques Dr. Miller suggested are making a difference...",
     },
 ];
-
 const Dashboard = () => {
-        const [user, setuser] = useState("")
-    useEffect(() => {
-
-        fetchUser().then((response)=>{
-            setuser(response.name);
-        })
-    })
-
+  const { User } = useStore(); // Access User from Zustand
+    const user = User.name; // Get the user's name
     return (
         <>
         <Navbar/>

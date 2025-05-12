@@ -142,7 +142,7 @@ export default function Signup() {
 
           <button
             type="submit"
-            className="w-full bg-purple-500 text-white font-semibold py-2 rounded-md hover:bg-purple-600 transition duration-200"
+            className="w-full bg-purple-500 text-white font-semibold py-2 rounded-md hover:bg-purple-600 transition duration-200 click:focus:ring-2 focus:ring-purple-400"
             >
             Sign Up
           </button>

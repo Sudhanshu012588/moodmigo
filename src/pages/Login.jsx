@@ -5,16 +5,19 @@ import { login } from "../appwrite/Auth";
 import { ID } from "appwrite";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
+
+import useStore from "../store/store";
+import { set } from "date-fns/set";
 const Login = () => {
+  const { User, setUser } = useStore();
   const navigate = useNavigate();
-  const [user, setUser] = useState({
+  const [form,setform] = useState({
     email: "",
     password: ""
-  });
-
+  })
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setUser((prevUser) => ({
+    setform((prevUser) => ({
       ...prevUser,
       [name]: value
     }));
@@ -23,13 +26,19 @@ const Login = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
-   login(user.email, user.password)
-      .then(() => {
+   await login(form.email, form.password)
+      .then(async() => {
+        const user = await account.get();
         toast.success("Login successful!");
+        setUser({...User, 
+          name: user.name,
+          email: user.email,
+        })
+        console.log(user);
         navigate("/dashboard");
       })
       .catch((error) => {
-        toast.error("Login failed. Please check your credentials.");
+        toast.error("Login failed.",error);
       });
   };
 
@@ -63,7 +72,7 @@ const Login = () => {
           name="email"
           type="email"
           placeholder="Enter your email"
-          value={user.email}
+          value={form.email}
           onChange={handleInputChange}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
         />
@@ -83,7 +92,7 @@ const Login = () => {
           name="password"
           type="password"
           placeholder="Enter your password"
-          value={user.password}
+          value={form.password}
           onChange={handleInputChange}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
         />
