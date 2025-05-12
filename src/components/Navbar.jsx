@@ -25,7 +25,7 @@ const Navbar = () => {
     setIsOpen(false); // close menu
     navigate(path);
   };
-
+  const token = localStorage.getItem('token');
   return (
     <nav className="flex justify-between items-center px-6 py-4 shadow-sm bg-white sticky top-0 z-50">
       <div
@@ -40,8 +40,8 @@ const Navbar = () => {
         <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">Home</button>
         <button onClick={() => handleScrollTo('services')} className="text-gray-700 hover:text-purple-600">Services</button>
         <button onClick={() => handleScrollTo('about')} className="text-gray-700 hover:text-purple-600">About</button>
-        <button onClick={() => handleNavigate('/login')} className="text-gray-700 hover:text-purple-600">Login</button>
-        <button onClick={() => handleNavigate('/signup')} className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">Sign Up</button>
+<button onClick={() => {token ? handleNavigate('/dashboard') : handleNavigate('/login')}} className="text-gray-700 hover:text-purple-600">Login</button>
+        <button onClick={() => {token ? handleNavigate('/dashboard') : handleNavigate('/signup')}} className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">Sign Up</button>
       </div>
 
       {/* Mobile Toggle Button */}
@@ -57,8 +57,8 @@ const Navbar = () => {
           <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">Home</button>
           <button onClick={() => handleScrollTo('services')} className="text-gray-700 hover:text-purple-600">Services</button>
           <button onClick={() => handleScrollTo('about')} className="text-gray-700 hover:text-purple-600">About</button>
-          <button onClick={() => handleNavigate('/login')} className="text-gray-700 hover:text-purple-600">Login</button>
-          <button onClick={() => handleNavigate('/signup')} className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">Sign Up</button>
+<button onClick={() => {token ? handleNavigate('/dashboard') : handleNavigate('/login')}} className="text-gray-700 hover:text-purple-600">Login</button>
+          <button onClick={() => {token ? handleNavigate('/dashboard') : handleNavigate('/signup')}} className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">Sign Up</button>
         </div>
       )}
     </nav>

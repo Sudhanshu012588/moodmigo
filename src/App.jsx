@@ -37,7 +37,7 @@ const App = () => {
 
         <Route
           path="/dashboard"
-          element={token ? <Dashboard /> : <Navigate to="/login" />}
+          element={<Dashboard/>}
           />
 
         <Route

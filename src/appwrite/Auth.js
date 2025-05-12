@@ -28,7 +28,7 @@ export const signup = async (name, email, password) => {
     try {
         const user = await account.create(ID.unique(), email, password, name);
         console.log("User created:", user);
-        await account.deleteSession('current');
+        // await account.deleteSession('current');
         return user;
     } catch (error) {
         console.error("Signup error:", error);
