@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { account } from "../appwrite/config";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../appwrite/Auth";
@@ -6,6 +6,12 @@ import { ID } from "appwrite";
 const Login = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if(token) {
+      navigate("/dashboard");
+    }
+  }, []);
   const [user, setUser] = useState({
     email: "",
     password: ""
