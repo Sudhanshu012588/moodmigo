@@ -32,7 +32,11 @@ const Navbar = () => {
   // Handle navigation
   const handleNavigate = (path) => {
     setIsOpen(false); // close menu
-    navigate(path);
+    if (isLoggedIn && path === '/') {
+      navigate('/dashboard'); // Redirect to dashboard if logged in and trying to go to home
+    } else {
+      navigate(path);
+    }
   };
 
   // Logout function
@@ -47,7 +51,7 @@ const Navbar = () => {
     account.deleteSession('current')
       .then(() => {
         console.log('Session deleted');
-        
+
         // Show Toastify success message
         toast.success('Successfully logged out!', {
           position: "top-right",
@@ -59,12 +63,12 @@ const Navbar = () => {
           progress: undefined,
         });
 
-        // Navigate to home or login page
+        // Navigate to home
         navigate('/');
       })
       .catch((error) => {
         console.error('Error deleting session:', error);
-        
+
         // Show error message in case of failure
         toast.error('Error logging out. Please try again.', {
           position: "top-right",
@@ -78,36 +82,49 @@ const Navbar = () => {
       });
   };
 
+  // Handle MoodMigo click
+  const handleMoodMigoClick = () => {
+    if (isLoggedIn) {
+      navigate('/dashboard'); // Go to dashboard if logged in
+    } else {
+      navigate('/'); // Go to home if not logged in
+    }
+  };
+
   return (
     <nav className="flex justify-between items-center px-6 py-4 shadow-sm bg-white sticky top-0 z-50">
       <div
         className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text cursor-pointer"
-        onClick={() => handleNavigate('/')}
+        onClick={handleMoodMigoClick} // Use the new handler
       >
         MoodMigo
       </div>
 
       {/* Desktop Links */}
       <div className="hidden md:flex items-center space-x-4">
-        <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">Home</button>
+        <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">
+          {isLoggedIn ? 'Dashboard' : 'Home'}
+        </button>
         <button onClick={() => handleScrollTo('services')} className="text-gray-700 hover:text-purple-600">Services</button>
         <button onClick={() => handleScrollTo('about')} className="text-gray-700 hover:text-purple-600">About</button>
 
         {/* Login/Logout Button */}
-        <button 
-          onClick={() => { 
+        <button
+          onClick={() => {
             isLoggedIn ? handleLogout() : handleNavigate('/login');
-          }} 
-          className="text-gray-700 hover:text-purple-600">
+          }}
+          className="text-gray-700 hover:text-purple-600"
+        >
           {isLoggedIn ? 'Logout' : 'Login'}
         </button>
 
         {/* Sign Up Button */}
-        <button 
-          onClick={() => { 
+        <button
+          onClick={() => {
             isLoggedIn ? handleNavigate('/dashboard') : handleNavigate('/signup');
-          }} 
-          className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">
+          }}
+          className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full"
+        >
           Sign Up
         </button>
       </div>
@@ -122,25 +139,29 @@ const Navbar = () => {
       {/* Mobile Dropdown Menu */}
       {isOpen && (
         <div className="absolute top-16 right-6 bg-white shadow-md rounded-lg flex flex-col p-4 space-y-3 md:hidden z-50">
-          <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">Home</button>
+          <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">
+            {isLoggedIn ? 'Dashboard' : 'Home'}
+          </button>
           <button onClick={() => handleScrollTo('services')} className="text-gray-700 hover:text-purple-600">Services</button>
           <button onClick={() => handleScrollTo('about')} className="text-gray-700 hover:text-purple-600">About</button>
 
           {/* Login/Logout Button */}
-          <button 
-            onClick={() => { 
+          <button
+            onClick={() => {
               isLoggedIn ? handleLogout() : handleNavigate('/login');
-            }} 
-            className="text-gray-700 hover:text-purple-600">
+            }}
+            className="text-gray-700 hover:text-purple-600"
+          >
             {isLoggedIn ? 'Logout' : 'Login'}
           </button>
 
           {/* Sign Up Button */}
-          <button 
-            onClick={() => { 
+          <button
+            onClick={() => {
               isLoggedIn ? handleNavigate('/dashboard') : handleNavigate('/signup');
-            }} 
-            className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">
+            }}
+            className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full"
+          >
             Sign Up
           </button>
         </div>
