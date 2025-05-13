@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar.jsx";
-import BlogCard from "../components/BlogCard";
 import db from "../appwrite/databases.js";
 import { toast } from "react-toastify";
 import { useStore } from "../store/store";
