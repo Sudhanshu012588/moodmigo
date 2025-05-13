@@ -127,7 +127,7 @@ export default function BlogSection() {
                   name="content"
                   value={blogInput.content}
                   onChange={handleChange}
-                  placeholder="Write your blog content here..."
+                  placeholder="Write your blog content here...!! Limit 1000 words"
                   rows={6}
                   className="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   required
