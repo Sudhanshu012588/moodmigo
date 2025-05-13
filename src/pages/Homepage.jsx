@@ -1,11 +1,23 @@
-import React from 'react'
+import React, { use, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import ServicesSection from '../components/Services'
 import PremiumPage from '../components/Premium.'
 import AboutPage from '../components/About'
 import Footer from '../components/Footer'
+import { useStore } from '../store/store'
 function Homepage() {
+  const User = useStore((state) => state.User);
+  useEffect(() => {
+
+    if(!User.isLoggedIn){
+      const token = localStorage.getItem('token');
+      if(token){
+        useStore.setState({User: {isLoggedIn: true}});
+      }
+    }
+      
+  },[])
   return (
 
     <>

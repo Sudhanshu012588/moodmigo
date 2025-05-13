@@ -38,12 +38,7 @@ export const signup = async (name, email, password) => {
 export const fetchUser = async () => {
     try {
         const session = await account.getSession('current');
-        // if(!session){
-        //     //create a new session
-        //     await account.createAnonymousSession();
-        //     const session = await account.getSession('current');
-
-        // }
+       
         const user = await account.get();
         return user;
     } catch (error) {

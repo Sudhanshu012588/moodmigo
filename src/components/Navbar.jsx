@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react'; // icons for menu
+import { useStore } from '../store/store'; // global state management
+import { account } from '../appwrite/config'; // appwrite account for user management
+import { toast } from 'react-toastify'; // toastify for notifications
+import 'react-toastify/dist/ReactToastify.css'; // import toastify styles
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Use Zustand's isLoggedIn state
+  const isLoggedIn = useStore((state) => state.User.isLoggedIn);
+
+  // Handle scroll to section
   const handleScrollTo = (id) => {
     setIsOpen(false); // close menu on click
     if (location.pathname !== '/') {
@@ -21,11 +29,55 @@ const Navbar = () => {
     }
   };
 
+  // Handle navigation
   const handleNavigate = (path) => {
     setIsOpen(false); // close menu
     navigate(path);
   };
-  const token = localStorage.getItem('token');
+
+  // Logout function
+  const handleLogout = () => {
+    // Remove token from localStorage
+    localStorage.removeItem('token');
+
+    // Update Zustand state
+    useStore.setState({ User: { isLoggedIn: false } });
+
+    // Delete session from Appwrite
+    account.deleteSession('current')
+      .then(() => {
+        console.log('Session deleted');
+        
+        // Show Toastify success message
+        toast.success('Successfully logged out!', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+
+        // Navigate to home or login page
+        navigate('/');
+      })
+      .catch((error) => {
+        console.error('Error deleting session:', error);
+        
+        // Show error message in case of failure
+        toast.error('Error logging out. Please try again.', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
+  };
+
   return (
     <nav className="flex justify-between items-center px-6 py-4 shadow-sm bg-white sticky top-0 z-50">
       <div
@@ -40,8 +92,24 @@ const Navbar = () => {
         <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">Home</button>
         <button onClick={() => handleScrollTo('services')} className="text-gray-700 hover:text-purple-600">Services</button>
         <button onClick={() => handleScrollTo('about')} className="text-gray-700 hover:text-purple-600">About</button>
-<button onClick={() => {token ? handleNavigate('/dashboard') : handleNavigate('/login')}} className="text-gray-700 hover:text-purple-600">Login</button>
-        <button onClick={() => {token ? handleNavigate('/dashboard') : handleNavigate('/signup')}} className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">Sign Up</button>
+
+        {/* Login/Logout Button */}
+        <button 
+          onClick={() => { 
+            isLoggedIn ? handleLogout() : handleNavigate('/login');
+          }} 
+          className="text-gray-700 hover:text-purple-600">
+          {isLoggedIn ? 'Logout' : 'Login'}
+        </button>
+
+        {/* Sign Up Button */}
+        <button 
+          onClick={() => { 
+            isLoggedIn ? handleNavigate('/dashboard') : handleNavigate('/signup');
+          }} 
+          className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">
+          Sign Up
+        </button>
       </div>
 
       {/* Mobile Toggle Button */}
@@ -57,8 +125,24 @@ const Navbar = () => {
           <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">Home</button>
           <button onClick={() => handleScrollTo('services')} className="text-gray-700 hover:text-purple-600">Services</button>
           <button onClick={() => handleScrollTo('about')} className="text-gray-700 hover:text-purple-600">About</button>
-<button onClick={() => {token ? handleNavigate('/dashboard') : handleNavigate('/login')}} className="text-gray-700 hover:text-purple-600">Login</button>
-          <button onClick={() => {token ? handleNavigate('/dashboard') : handleNavigate('/signup')}} className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">Sign Up</button>
+
+          {/* Login/Logout Button */}
+          <button 
+            onClick={() => { 
+              isLoggedIn ? handleLogout() : handleNavigate('/login');
+            }} 
+            className="text-gray-700 hover:text-purple-600">
+            {isLoggedIn ? 'Logout' : 'Login'}
+          </button>
+
+          {/* Sign Up Button */}
+          <button 
+            onClick={() => { 
+              isLoggedIn ? handleNavigate('/dashboard') : handleNavigate('/signup');
+            }} 
+            className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full">
+            Sign Up
+          </button>
         </div>
       )}
     </nav>
