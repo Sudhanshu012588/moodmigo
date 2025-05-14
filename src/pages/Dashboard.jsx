@@ -81,13 +81,15 @@ const Dashboard = () => {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6"
           >
+            <button onClick={() => navigator('/manas')}>
+
             <div className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] rounded-lg p-4">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-purple-500" />
-                <h2 className="text-gray-900 font-semibold">Free Plan</h2>
+                <h2 className="text-gray-900 font-semibold">MANAS</h2>
               </div>
-              <p className="text-gray-500 text-sm">Current subscription</p>
             </div>
+            </button>
 
             <div className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] rounded-lg p-4">
               <div className="flex items-center gap-2">
