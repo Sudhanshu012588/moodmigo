@@ -92,7 +92,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex justify-between items-center px-6 py-4 shadow-sm bg-white sticky top-0 z-50">
+    <nav className="flex justify-between items-center px-6 py-4  bg-white sticky top-0 z-50">
       <div
         className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text cursor-pointer"
         onClick={handleMoodMigoClick} // Use the new handler
