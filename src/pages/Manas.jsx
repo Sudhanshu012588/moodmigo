@@ -3,8 +3,8 @@ import { SendHorizonal } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useStore } from '../store/store';
 import { getResponse } from '../gemini/Manas';
-import db from '../appwrite/databases.js';
-import { Query, Permission, Role } from 'appwrite';
+import db from '../appwrite/databases';
+import { Permission, Role, Query } from 'appwrite';
 
 const ManasChatbot = () => {
     const user = useStore((state) => state.User);
@@ -13,38 +13,51 @@ const ManasChatbot = () => {
     const [prompt, setPrompt] = useState('');
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [docID, setDocID] = useState(null);
     const chatEndRef = useRef(null);
 
-    // Fetch previous messages when component mounts
+    // 1. Load or create chat document
     useEffect(() => {
-        const fetchMessages = async () => {
+        const initChat = async () => {
             if (!userID) return;
 
             try {
                 const res = await db.manas.list([
-                    Query.equal('userID', userID),
+                    Query.equal("userID", userID),
                     Query.limit(1)
                 ]);
 
                 if (res.documents.length > 0) {
-                    setMessages(res.documents[0].messages || []);
+                    const doc = res.documents[0];
+                    setDocID(doc.$id);
+                    setMessages(JSON.parse(doc.chatHistory || '[]'));
                 } else {
-                    console.log("No previous chat found for user.");
+                    const newDoc = await db.manas.create(
+                        {
+                            userID,
+                            chatHistory: JSON.stringify([])
+                        },
+                        [Permission.read(Role.user(userID)), Permission.update(Role.user(userID))]
+                    );
+                    setDocID(newDoc.$id);
+                    setMessages([]);
                 }
             } catch (err) {
-                console.error('Failed to load previous messages:', err);
+                console.error("Error initializing chat:", err);
             }
         };
 
-        fetchMessages();
+        initChat();
     }, [userID]);
 
+    // 2. Scroll to bottom
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const sendMessage = async () => {
-        if (!prompt.trim() || !userID) return;
+    // 3. Send message
+    const handleSend = async () => {
+        if (!prompt.trim() || !docID) return;
 
         const userMessage = { user: prompt, model: null };
         const updatedMessages = [...messages, userMessage];
@@ -54,34 +67,22 @@ const ManasChatbot = () => {
         setLoading(true);
 
         try {
-            const response = await getResponse(prompt);
-            const modelMessage = { ...userMessage, model: response?.response || 'Something went wrong.' };
+            const result = await getResponse(prompt);
+            const modelResponse = result?.response || "Sorry, I couldn’t respond.";
 
-            const finalMessages = [...updatedMessages.slice(0, -1), modelMessage];
+            const finalMessages = [
+                ...updatedMessages.slice(0, -1),
+                { ...userMessage, model: modelResponse }
+            ];
             setMessages(finalMessages);
 
-            // Save message to DB: check if doc exists, else create
-            const res = await db.manas.list([
-                Query.equal('userID', userID),
-                Query.limit(1)
-            ]);
-
-            if (res.documents.length > 0) {
-                const docID = res.documents[0].$id;
-                await db.manas.update(docID, {
-                    messages: finalMessages
-                });
-            } else {
-                await db.manas.create({
-                    userID,
-                    messages: finalMessages
-                }, [
-                    Permission.read(Role.user(userID)),
-                    Permission.update(Role.user(userID))
-                ]);
-            }
-        } catch (err) {
-            console.error('Failed to send message:', err);
+            await db.manas.update(
+                docID,
+                { chatHistory: JSON.stringify(finalMessages) },
+                [Permission.update(Role.user(userID))]
+            );
+        } catch (error) {
+            console.error("Failed to send message:", error);
         } finally {
             setLoading(false);
         }
@@ -123,12 +124,12 @@ const ManasChatbot = () => {
                         type="text"
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                         placeholder="Type your message..."
                         className="flex-1 p-3 rounded-xl bg-gray-100 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                     <button
-                        onClick={sendMessage}
+                        onClick={handleSend}
                         className="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow transition"
                     >
                         <SendHorizonal className="w-5 h-5" />
