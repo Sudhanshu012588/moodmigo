@@ -51,7 +51,7 @@ const ManasChatbot = () => {
         <div className="flex flex-col h-screen">
             <div className="bg-white/90 backdrop-blur-md border-b border-gray-200 p-4 flex items-center gap-4 shadow-sm">
                 <MessageCircle className="w-6 h-6 text-purple-500" />
-                <h1 className="text-xl font-semibold text-gray-900">Manas Chatbot</h1>
+                <h1 className="text-xl font-semibold text-gray-900">Manarah Chatbot</h1>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">

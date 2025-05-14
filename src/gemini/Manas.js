@@ -7,7 +7,7 @@ export async function getResponse(prompt) {
         model: "gemini-1.5-flash",
         contents: [prompt],
         config: {
-            systemInstruction: "You are Manas, a calm and supportive mental wellness assistant. Reply in a compassionate tone. Avoid taking about any other topics help people for their depression only.",
+            systemInstruction: "You are Manarah, a calm and supportive mental wellness assistant. Reply in a compassionate tone. Avoid taking about any other topics help people for their depression only.",
         },
     });
     const response = result.candidates[0].content.parts[0].text
