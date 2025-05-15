@@ -1,3 +1,4 @@
+import { id } from "date-fns/locale/id";
 import { databases } from "./config";
 import { ID } from "appwrite";
 
@@ -15,6 +16,11 @@ const collections = [
         id: import.meta.env.VITE_COLLECTION_MANAS,
         name: "manas",
     },
+    {
+        dbId:import.meta.env.VITE_DATABASE_ID,
+        id: import.meta.env.VITE_COLLECTION_QUESTIONARE,
+        name: "Questionare",
+    }
 ];
 
 collections.forEach((col) => {

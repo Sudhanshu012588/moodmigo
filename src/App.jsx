@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Manas from "./pages/Manas";
 import Signup from "./pages/Signup";
 import BlogPage from "./pages/BlogPage";
+import MoodMigoQuestionnaire from "./pages/Questions";
 const App = () => {
   return (
     <>
@@ -52,7 +53,8 @@ const App = () => {
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" />} />
 
-        <Route path="/manas" element={<Manas />} />
+        <Route path="/chat" element={<Manas />} />
+        <Route path="/questionnaire" element={<MoodMigoQuestionnaire />} />
       </Routes>
     </BrowserRouter>
           </>
