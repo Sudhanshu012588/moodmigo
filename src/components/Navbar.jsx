@@ -1,93 +1,172 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useStore } from '../store/store';
-import { account } from '../appwrite/config';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Menu, X } from 'lucide-react'; // icons for menu
+import { useStore } from '../store/store'; // global state management
+import { account } from '../appwrite/config'; // appwrite account for user management
+import { toast } from 'react-toastify'; // toastify for notifications
+import 'react-toastify/dist/ReactToastify.css'; // import toastify styles
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Use Zustand's isLoggedIn state
   const isLoggedIn = useStore((state) => state.User.isLoggedIn);
 
-  const [isOpen, setIsOpen] = useState(true); // Always true to always show bottom nav on mobile
-
+  // Handle scroll to section
   const handleScrollTo = (id) => {
+    setIsOpen(false); // close menu on click
     if (location.pathname !== '/') {
       navigate('/', { replace: false });
       setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        const element = document.getElementById(id);
+        element?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } else {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      const element = document.getElementById(id);
+      element?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
+  // Handle navigation
   const handleNavigate = (path) => {
+    setIsOpen(false); // close menu
     if (isLoggedIn && path === '/') {
-      navigate('/dashboard');
+      navigate('/dashboard'); // Redirect to dashboard if logged in and trying to go to home
     } else {
       navigate(path);
     }
   };
 
+  // Logout function
   const handleLogout = () => {
+    // Remove token from localStorage
     localStorage.removeItem('token');
+
+    // Update Zustand state
     useStore.setState({ User: { isLoggedIn: false } });
+
+    // Delete session from Appwrite
     account.deleteSession('current')
       .then(() => {
-        toast.success('Logged out successfully!');
+        console.log('Session deleted');
+
+        // Show Toastify success message
+        toast.success('Successfully logged out!', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+
+        // Navigate to home
         navigate('/');
       })
-      .catch(() => {
-        toast.error('Logout failed. Try again.');
+      .catch((error) => {
+        console.error('Error deleting session:', error);
+
+        // Show error message in case of failure
+        toast.error('Error logging out. Please try again.', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       });
   };
 
-  // Render nothing on desktop
-  const isMobile = window.innerWidth < 768;
-  if (!isMobile) return null;
+  // Handle MoodMigo click
+  const handleMoodMigoClick = () => {
+    if (isLoggedIn) {
+      navigate('/dashboard'); // Go to dashboard if logged in
+    } else {
+      navigate('/'); // Go to home if not logged in
+    }
+  };
 
   return (
-    isOpen && (
-      <div className="fixed bottom-4 left-4 right-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white z-50 py-3 px-6 flex justify-around items-center shadow-lg rounded-full md:hidden">
-        <div className="flex flex-col items-center" onClick={() => handleNavigate('/')}>
-          <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
-              2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 
-              3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 
-              6.86-8.55 11.54L12 21.35z" />
-          </svg>
-          <span className="text-xs">Home</span>
-        </div>
-
-        <div className="flex flex-col items-center" onClick={() => handleScrollTo('services')}>
-          <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M9 19V6h13v13H9zM4 6H2v13h2V6zm0 0h2v13H4z" />
-          </svg>
-          <span className="text-xs">Services</span>
-        </div>
-
-        <div className="flex flex-col items-center" onClick={() => handleScrollTo('about')}>
-          <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M12 20h9" />
-            <path d="M16.5 3a4.5 4.5 0 0 1 0 9m-9-9a4.5 4.5 0 0 1 0 9m0 6a4.5 4.5 0 0 1 9 0" />
-          </svg>
-          <span className="text-xs">About</span>
-        </div>
-
-        <div
-          className="flex flex-col items-center"
-          onClick={() => isLoggedIn ? handleLogout() : handleNavigate('/login')}
-        >
-          <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M17 16l4-4m0 0l-4-4m4 4H7" />
-            <path d="M3 4v16h18" />
-          </svg>
-          <span className="text-xs">{isLoggedIn ? 'Logout' : 'Login'}</span>
-        </div>
+    <nav className="flex justify-between items-center px-6 py-4  bg-white sticky top-0 z-50">
+      <div
+        className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text cursor-pointer"
+        onClick={handleMoodMigoClick} // Use the new handler
+      >
+        MoodMigo
       </div>
-    )
+
+      {/* Desktop Links */}
+      <div className="hidden md:flex items-center space-x-4">
+        <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">
+          {isLoggedIn ? 'Dashboard' : 'Home'}
+        </button>
+        <button onClick={() => handleScrollTo('services')} className="text-gray-700 hover:text-purple-600">Services</button>
+        <button onClick={() => handleScrollTo('about')} className="text-gray-700 hover:text-purple-600">About</button>
+
+        {/* Login/Logout Button */}
+        <button
+          onClick={() => {
+            isLoggedIn ? handleLogout() : handleNavigate('/login');
+          }}
+          className="text-gray-700 hover:text-purple-600"
+        >
+          {isLoggedIn ? 'Logout' : 'Login'}
+        </button>
+
+        {/* Sign Up Button */}
+        <button
+          onClick={() => {
+            isLoggedIn ? handleNavigate('/dashboard') : handleNavigate('/signup');
+          }}
+          className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full"
+        >
+          Sign Up
+        </button>
+      </div>
+
+      {/* Mobile Toggle Button */}
+      <div className="md:hidden">
+        <button onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Dropdown Menu */}
+      {isOpen && (
+        <div className="absolute top-16 right-6 bg-white shadow-md rounded-lg flex flex-col p-4 space-y-3 md:hidden z-50">
+          <button onClick={() => handleNavigate('/')} className="text-gray-700 hover:text-purple-600">
+            {isLoggedIn ? 'Dashboard' : 'Home'}
+          </button>
+          <button onClick={() => handleScrollTo('services')} className="text-gray-700 hover:text-purple-600">Services</button>
+          <button onClick={() => handleScrollTo('about')} className="text-gray-700 hover:text-purple-600">About</button>
+
+          {/* Login/Logout Button */}
+          <button
+            onClick={() => {
+              isLoggedIn ? handleLogout() : handleNavigate('/login');
+            }}
+            className="text-gray-700 hover:text-purple-600"
+          >
+            {isLoggedIn ? 'Logout' : 'Login'}
+          </button>
+
+          {/* Sign Up Button */}
+          <button
+            onClick={() => {
+              isLoggedIn ? handleNavigate('/dashboard') : handleNavigate('/signup');
+            }}
+            className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-full"
+          >
+            Sign Up
+          </button>
+        </div>
+      )}
+    </nav>
   );
 };
 
