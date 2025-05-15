@@ -88,6 +88,7 @@ const Dashboard = () => {
                 <Users className="w-5 h-5 text-purple-500" />
                 <h2 className="text-gray-900 font-semibold">MANARAH</h2>
               </div>
+                <p className="text-gray-500 text-sm left-0">Your mental health companion.</p>
             </div>
             </button>
             <button onClick={()=>navigator('/questionnaire')}>
@@ -97,7 +98,7 @@ const Dashboard = () => {
                 <Calendar className="w-5 h-5 text-blue-500" />
                 <h2 className="text-gray-900 font-semibold">Fill The Questionare</h2>
               </div>
-              <p className="text-gray-500 text-sm">Click here to fill our Questionare</p>
+              <p className="text-gray-500 text-sm left-0">Click here to fill our Questionare</p>
             </div>
             </button>
 
@@ -109,7 +110,7 @@ const Dashboard = () => {
                 <MessageCircle className="w-5 h-5 text-yellow-500" />
                 <h2 className="text-gray-900 font-semibold">{numberOfBlogs} Blogs</h2>
               </div>
-              <p className="text-gray-500 text-sm">Community posts</p>
+              <p className="text-gray-500 text-sm left-0">Community posts</p>
             </button>
           </motion.div>
 
