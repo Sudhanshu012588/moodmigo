@@ -242,7 +242,7 @@ const handleChange = (e) => {
                 MoodMigo Mental Health Questionnaire
               </h1>
               <p className="text-gray-800">
-                Please answer the following questions to help us assess your mental well-being.
+                Please answer the following questions to access you mental health.
               </p>
             </div>
 

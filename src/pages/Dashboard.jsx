@@ -87,7 +87,7 @@ const [updateDate, setUpdateDate] = useState(null);
           >
            <div>
               <h1 className="text-3xl sm:text-4xl font-bold text-indigo-700 tracking-tight">
-                Welcome back, <span className="font-extrabold text-indigo-900">{user.name}</span>!
+                Welcome back, <span className="font-extrabold text-indigo-700">{user.name}</span>!
               </h1>
               <p className="text-gray-600 text-sm sm:text-base mt-1">Your personalized mental wellness hub.</p>
             </div>
@@ -122,9 +122,9 @@ const [updateDate, setUpdateDate] = useState(null);
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <Calendar className="w-6 h-6 text-blue-500" />
-                  <h2 className="text-gray-900 font-semibold text-lg">Fill The questionnaire</h2>
+                  <h2 className="text-gray-900 font-semibold text-lg">Fill The Questionnaire </h2>
                 </div>
-                <p className="text-gray-500 text-sm">Click here to fill our questionnaire</p>
+                <p className="text-gray-500 text-sm">Click here to fill our questionnaire </p>
               </div>
             </button>
 
@@ -138,7 +138,7 @@ const [updateDate, setUpdateDate] = useState(null);
                   <MessageCircle className="w-6 h-6 text-yellow-500" />
                   <h2 className="text-gray-900 font-semibold text-lg">{numberOfBlogs} Blogs</h2>
                 </div>
-                <p className="text-gray-500 text-sm">Community posts</p>
+                <p className="text-gray-500 text-sm">⁠Community Posts</p>
               </div>
             </button>
           </motion.div>
@@ -162,7 +162,7 @@ const [updateDate, setUpdateDate] = useState(null);
             </div>
             <div className="flex justify-center mt-2">
                 <span className="bg-gradient-to-r from-purple-100 to-blue-100 text-gray-900 border-0 shadow-sm shadow-purple-500/20 px-4 py-2 rounded-full text-sm inline-flex items-center">
-                    Last Update on: {updateDate}
+                    ⁠Last Updated on: {updateDate}
                 </span>
             </div>
         </div>
