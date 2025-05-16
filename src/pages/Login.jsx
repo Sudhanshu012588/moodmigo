@@ -15,9 +15,9 @@ const Login = () => {
     email: "",
     password: "",
   });
-  useEffect(() => {
-    console.log("User:", globaluser);
-  },[globaluser]);
+  // useEffect(() => {
+  //   console.log("User:", globaluser);
+  // },[globaluser]);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setform((prevUser) => ({
@@ -41,7 +41,7 @@ const Login = () => {
       });
 
       toast.success("Login successful!");
-      console.log("User:", user);
+      // console.log("User:", user);
       navigate("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);

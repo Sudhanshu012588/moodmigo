@@ -20,6 +20,10 @@ const collections = [
         dbId:import.meta.env.VITE_DATABASE_ID,
         id: import.meta.env.VITE_COLLECTION_QUESTIONARE,
         name: "Questionare",
+    },{
+        dbId: import.meta.env.VITE_DATABASE_ID,
+        id: import.meta.env.VITE_COLLECTION_USER_ATTRIBUTES,
+        name:"UsersAttributes"
     }
 ];
 

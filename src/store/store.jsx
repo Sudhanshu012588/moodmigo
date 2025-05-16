@@ -9,6 +9,8 @@ import {create} from 'zustand';
     password: "",
     isLoggedIn: false,
   },
+  score: 0,
+  setScore: (newScore) => set((state) => ({ score: newScore })), // Add this line
   setUser: (newUser) => set((state) => ({ User: { ...state.User, ...newUser } })), // Change 'user' to 'User'
 }));
 

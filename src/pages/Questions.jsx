@@ -6,6 +6,9 @@ import {ID} from "appwrite";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { toast } from "react-toastify";
+import { useStore } from "../store/store";
+
+import { getScore } from "../gemini/Manas";
 // Animation Variants
 const fadeIn = {
   hidden: { opacity: 0, y: 30 },
@@ -63,51 +66,61 @@ const initialFormState = {
   hobbies: "",
   copingStrategies: [], // multiple checkbox values stored as array
 };
-
 const MoodMigoQuestionnaire = () => {
+  const userID = useStore((state) => state.User.id);
+  const score = useStore((state) => state.score);
+  const setScore = useStore((state) => state.setScore);
   const [form, setForm] = useState(initialFormState);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const user = useStore((state) => state.User);
+  const setUser = useStore((state) => state.setUser);
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    if (type === "checkbox" && name === "copingStrategies") {
-      setForm((prev) => {
-        const current = prev.copingStrategies || [];
-        if (checked) {
-          // add value
-          return { ...prev, copingStrategies: [...current, value] };
-        } else {
-          // remove value
-          return {
-            ...prev,
-            copingStrategies: current.filter((item) => item !== value),
-          };
-        }
-    });
-} else {
-    setForm((prev) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-    }));
-}
-};
-const navigate = useNavigate();  // for redirect
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitted(true);
-  console.log("Form submitted:", form);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitted(true);
 
   try {
-    // Clean up form if needed (Appwrite-safe)
+    // Normalize coping strategies
+    const copingStrategies = Array.isArray(form.copingStrategies) ? form.copingStrategies : [];
+
+    // Truncate helper
+    const truncate = (str, maxLen = 25) =>
+      typeof str === "string" ? (str.length > maxLen ? str.slice(0, maxLen) : str) : "";
+
+    // Clean and truncate form data
     const cleanedForm = {
       ...form,
-      CopingStrategies: Array.isArray(form.copingStrategies)
-        ? form.copingStrategies
-        : [], // ensure it's always an array
+      CopingStrategies: copingStrategies,
+      "Feeling down, depressed, or hopeless": truncate(form["Feeling down, depressed, or hopeless"]),
+      "Little interest or pleasure in doing things": truncate(form["Little interest or pleasure in doing things"]),
+      "Feeling nervous, anxious, or on edge": truncate(form["Feeling nervous, anxious, or on edge"]),
+      "Trouble relaxing": truncate(form["Trouble relaxing"]),
+      "Excessive worry": truncate(form["Excessive worry"]),
+      "Fatigue or low energy": truncate(form["Fatigue or low energy"]),
+      "Changes in appetite": truncate(form["Changes in appetite"]),
+      "Sleep disturbances": truncate(form["Sleep disturbances"]),
+      "Difficulty concentrating": truncate(form["Difficulty concentrating"]),
+      "Thoughts of self-harm or suicide": truncate(form["Thoughts of self-harm or suicide"]),
+      dailyFunction: truncate(form.dailyFunction),
+      substanceUse: truncate(form.substanceUse),
+      substanceDetails: truncate(form.substanceDetails),
+      lifeChanges: truncate(form.lifeChanges),
+      changeDetails: truncate(form.changeDetails),
+      connectedness: truncate(form.connectedness),
+      safety: truncate(form.safety),
+      safetyDetails: truncate(form.safetyDetails),
+      hobbies: truncate(form.hobbies),
+      diagnosed: truncate(form.diagnosed),
+      treatment: truncate(form.treatment),
+      treatmentType: truncate(form.treatmentType),
+      provider: truncate(form.provider),
+      hospitalized: truncate(form.hospitalized),
+      hospitalReason: truncate(form.hospitalReason),
     };
 
-    const response = await db.Questionare.create({
+    // Save to Questionare collection
+    await db.Questionare.create({
       FullName: cleanedForm["Full Name"],
       DateOfBirth: cleanedForm["Date of Birth"],
       Gender: cleanedForm["Gender"],
@@ -144,18 +157,68 @@ const handleSubmit = async (e) => {
       Safety: cleanedForm.safety,
       SafetyDetails: cleanedForm.safetyDetails,
       Hobbies: cleanedForm.hobbies,
-      CopingStrategies: cleanedForm.copingStrategies, // safe now
+      CopingStrategies: cleanedForm.CopingStrategies,
     });
 
-    setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
-      toast.success("Form submitted successfully!");
+    // Get Gemini Score
+    const geminiScoreRaw = await getScore(JSON.stringify(cleanedForm));
+const geminiScore = Math.round(Number(geminiScoreRaw.totalScore)); // Ensure it's an integer
+setScore(geminiScore);
+
+    // Store in UsersAttributes (create or update)
+    const attributes = await db.UsersAttributes.list();
+    const userAttributes = attributes.documents.find((doc) => doc.UserId === userID);
+
+    if (!userAttributes) {
+      await db.UsersAttributes.create({
+        UserId: userID,
+        Score: geminiScore,
+        lastUpdatedDate: new Date().toISOString(),
+      });
+    } else {
+      await db.UsersAttributes.update(userAttributes.$id, {
+        Score: geminiScore,
+        lastUpdatedDate: new Date().toISOString(),
+      });
+    }
+
+    // Save date to localStorage
+    const now = new Date();
+const formattedDate = now.toLocaleDateString('en-GB'); // dd/mm/yyyy
+localStorage.setItem("lastAssessmentDate", formattedDate);
+    toast.success("Form submitted successfully!");
+
+    // Redirect after success
+    setTimeout(() => navigate("/dashboard"), 2000);
   } catch (error) {
-    toast.error("Error submitting form. Please try again.",error);
+    console.error("Submission error:", error);
+    toast.error("Error submitting form. Please try again.");
   }
 };
 
+
+const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
+
+  if (type === 'checkbox') {
+    setForm((prev) => {
+      const strategies = prev.copingStrategies || [];
+      if (checked) {
+        return { ...prev, copingStrategies: [...strategies, value] };
+      } else {
+        return {
+          ...prev,
+          copingStrategies: strategies.filter((v) => v !== value),
+        };
+      }
+    });
+  } else {
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+};
   
 
   return (
@@ -485,6 +548,7 @@ const handleSubmit = async (e) => {
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              onClick={handleSubmit}
             >
               Submit
             </button>
