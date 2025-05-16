@@ -85,9 +85,12 @@ const [updateDate, setUpdateDate] = useState(null);
             transition={{ duration: 0.5 }}
             className="text-center"
           >
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 tracking-tight">
-              Welcome back, <span className="font-extrabold">{user.name}</span>!
-            </h1>
+           <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-indigo-700 tracking-tight">
+                Welcome back, <span className="font-extrabold text-indigo-900">{user.name}</span>!
+              </h1>
+              <p className="text-gray-600 text-sm sm:text-base mt-1">Your personalized mental wellness hub.</p>
+            </div>
             <p className="text-gray-600 text-sm sm:text-base mt-2">Let's continue your mental wellness journey</p>
           </motion.div>
 
