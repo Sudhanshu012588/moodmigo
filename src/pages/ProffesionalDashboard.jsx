@@ -24,13 +24,19 @@ const ProfessionalDashboard = () => {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [rescheduleId, setRescheduleId] = useState(null);
   const [rescheduleDate, setRescheduleDate] = useState(new Date());
-
+  const [meetings,setMeetings]=useState([])
   const [link,setLink]=useState("")
+
+
+  const today = new Date();
+const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+ 
 
   // Fetch logged-in professional user info
   useEffect(() => {
     const fetchProfessionalData = async () => {
       setIsLoading(true);
+      
       try {
         const client = new Client()
           .setEndpoint("https://fra.cloud.appwrite.io/v1")
@@ -69,15 +75,40 @@ const ProfessionalDashboard = () => {
           [Query.equal('Mentorid', user.id)]
         );
 
-        setSessionsArray(response.documents.filter(doc => doc.confirmation === false));
-        setConfirmedAppointments(response.documents.filter(doc => doc.confirmation === true));
+         setSessionsArray(response.documents.filter(doc => doc.confirmation === false));
+         setConfirmedAppointments(response.documents.filter(doc => doc.confirmation === true));
+        } catch (error) {
+          toast.error("Server error fetching sessions");
+        }
+      };
+
+
+      const fetchMeetings = async () => {
+      const client = new Client()
+        .setEndpoint("https://fra.cloud.appwrite.io/v1")
+        .setProject("6826c7d8002c4477cb81");
+
+      const databases = new Databases(client);
+
+      try {
+        const newsessions = await databases.listDocuments(
+          "6826d3a10039ef4b9444",
+          "68275039000cb886ff5c",
+          [Query.equal("Mentorid", user.id)]
+        );
+        setMeetings(newsessions.documents);
+        console.log(newsessions.documents);
       } catch (error) {
-        toast.error("Server error fetching sessions");
+        console.error("Error fetching meetings:", error);
       }
     };
-
-    fetchSessionRequests();
+      
+      fetchSessionRequests();
+      fetchMeetings();
+      
   }, [user]);
+
+
 
   // Confirm a session and create appointment
   const handleConfirm = async (sessionId) => {
@@ -106,7 +137,7 @@ const ProfessionalDashboard = () => {
 
       const session = sessionArray.find(s => s.$id === sessionId);
         const roomName = `${sessionId}`;
-    const meetingUrl = `https://meet.jit.si/${roomName}`;
+    const newmeetingUrl = `https://meet.jit.si/${roomName}`;
       if (session) {
         await profDatabases.createDocument(
           "6826d3a10039ef4b9444",
@@ -117,7 +148,7 @@ const ProfessionalDashboard = () => {
             ClientId: session.Clientid,
             date: session.date,
             time: session.time,
-            meetingurl: meetingUrl
+            meetingurl: newmeetingUrl
           }
         );
         toast.success("Appointment created!");
@@ -216,9 +247,9 @@ const ProfessionalDashboard = () => {
   };
 
   const handleJoinMeeting = (id) => {
-    const roomName = `${id}`;
-    const meetingUrl = `https://meet.jit.si/${roomName}`;
-    window.open(meetingUrl, "_blank");
+    // const roomName = `${ID.unique()}`;
+    // const meetingUrl = `https://meet.jit.si/${roomName}`;
+    window.open(id, "_blank");
   };
 
   if (isLoading) return <MoodMigoLoading />;
@@ -293,7 +324,7 @@ const ProfessionalDashboard = () => {
             {sessionArray.length === 0 ? (
               <p className="text-gray-500">No session requests at the moment.</p>
             ) : (
-              sessionArray.map(({ $id, username, date, time }) => (
+              sessionArray.map(({ $id, username, date, time,meetingUrl }) => (
                 <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
                   <div>
                     <p><span className="font-semibold">Client:</span> {username}</p>
@@ -314,7 +345,7 @@ const ProfessionalDashboard = () => {
                       Reschedule
                     </button>
                     <button
-                      onClick={() => handleDelete($id)}
+                      onClick={() => handleDelete(meetingUrl)}
                       className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
                     >
                       Delete
@@ -346,28 +377,30 @@ const ProfessionalDashboard = () => {
           </motion.section>
 
           {/* Confirmed Appointments */}
-          <motion.section>
-            <h2 className="text-xl font-semibold mb-4">Confirmed Appointments</h2>
-            {confirmedAppointments.length === 0 ? (
-              <p className="text-gray-500">No confirmed appointments.</p>
-            ) : (
-              confirmedAppointments.map(({ $id, username, date, time }) => (
-                <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
-                  <div>
-                    <p><span className="font-semibold">Client:</span> {username}</p>
-                    <p><span className="font-semibold">Date:</span> {date}</p>
-                    <p><span className="font-semibold">Time:</span> {time}</p>
-                  </div>
-                  <button
-                    onClick={() => handleJoinMeeting($id)}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-                  >
-                    Join Meeting
-                  </button>
-                </div>
-              ))
-            )}
-          </motion.section>
+         <motion.section>
+  <h2 className="text-xl font-semibold mb-4">Confirmed Appointments</h2>
+  {confirmedAppointments.length === 0 ? (
+    <p className="text-gray-500">No confirmed appointments.</p>
+  ) : (
+    meetings.map(({ $id, username, date, time, meetingurl }) => (
+      <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
+        <div>
+          <p><span className="font-semibold">Client:</span> {username}</p>
+          <p><span className="font-semibold">Date:</span> {date}</p>
+          <p><span className="font-semibold">Time:</span> {time}</p>
+        </div>
+        {date == formattedDate && (
+          <button
+            onClick={() => handleJoinMeeting(meetingurl)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+          >
+            Join Meeting
+          </button>
+        )}
+      </div>
+    ))
+  )}
+</motion.section>
         </motion.div>
       </main>
     </>

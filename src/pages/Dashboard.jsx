@@ -20,7 +20,8 @@ const journalEntries = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
-
+const today = new Date();
+const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
   // Zustand states and setters
   const user = useStore(state => state.User);
   const setUser = useStore(state => state.setUser);
@@ -74,13 +75,14 @@ const Dashboard = () => {
             "68275039000cb886ff5c",
             [Query.equal("ClientId", tempUser.$id)]
           );
+          console.log(response)
 
           if (response.documents.length > 0) {
             setProfessionals(response.documents);
 
             // Example: extract URL field if exists (replace 'urlFieldName' with actual field)
-            const firstUrl = response.documents[0]?.meetingurl || '';
-            setUrl(firstUrl);
+            // const firstUrl = response.documents[0]?.meetingurl || '';
+            // setUrl(firstUrl);
             
             // console.log(professionals)
           } else {
@@ -266,26 +268,29 @@ const Dashboard = () => {
                             </p>
                           </div>
                         </div>
-                        <button
+                        {session.date === formattedDate ? <button
   className={`text-white border px-5 py-2 rounded-md text-sm transition-colors 
     
        border-green-500 bg-green-500/90 hover:bg-green-600`
       
   }
-  onClick={() => window.open(url, '_blank')}
+  onClick={() => window.open(session.meetingurl, '_blank')}
 >
   join
-</button>
+</button>:<></>}
                       </div>
                     ))}
                   </div>
                 </div>
+                <div className='py-2'>
+
                   <button
   onClick={() => navigate('/sessions')}
-  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 text-sm font-semibold"
+  className="bg-gradient-to-r  from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 text-sm font-semibold"
 >
   Request New Session
 </button>
+  </div>
 
               </motion.div>
 
