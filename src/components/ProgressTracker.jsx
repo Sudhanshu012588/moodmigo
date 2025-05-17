@@ -50,7 +50,7 @@ const CircularProgress = ({ score = 0, size = 120, strokeWidth = 10 }) => {
         </defs>
       </svg>
       <div className="absolute text-center text-purple-700 font-semibold text-lg">
-        {score}/50
+        {percentage}%
       </div>
     </div>
   );

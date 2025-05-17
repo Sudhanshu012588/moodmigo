@@ -5,12 +5,11 @@ import { useStore } from '../store/store'; // global state management
 import { account } from '../appwrite/config'; // appwrite account for user management
 import { toast } from 'react-toastify'; // toastify for notifications
 import 'react-toastify/dist/ReactToastify.css'; // import toastify styles
-
+import { Client,Account } from 'appwrite';
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-
   // Use Zustand's isLoggedIn state
   const isLoggedIn = useStore((state) => state.User.isLoggedIn);
 
@@ -29,57 +28,88 @@ const Navbar = () => {
     }
   };
 
+  const userType = localStorage.getItem('type');
   // Handle navigation
   const handleNavigate = (path) => {
     setIsOpen(false); // close menu
     if (isLoggedIn && path === '/') {
-      navigate('/dashboard'); // Redirect to dashboard if logged in and trying to go to home
+      navigate(userType==="Client"? '/dashboard' : "/mentorsdashboard"); // Redirect to dashboard if logged in and trying to go to home
     } else {
       navigate(path);
     }
   };
 
+  const type = useStore((state)=>state.type)
   // Logout function
   const handleLogout = () => {
     // Remove token from localStorage
     localStorage.removeItem('token');
-
+    localStorage.removeItem('type')
     // Update Zustand state
     useStore.setState({ User: { isLoggedIn: false } });
-
     // Delete session from Appwrite
-    account.deleteSession('current')
-      .then(() => {
-        console.log('Session deleted');
+    if(type == "Client"){
+      account.deleteSession('current')
+        .then(() => {
+          console.log('Session deleted');
+  
+          // Show Toastify success message
+          toast.success('Successfully logged out!', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
 
-        // Show Toastify success message
-        toast.success('Successfully logged out!', {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
+          // Navigate to home
+          navigate('/');
+        })
+        .catch((error) => {
+          console.error('Error deleting session:', error);
+          
+          
+                  // Show error message in case of failure
+                  toast.error('Error logging out. Please try again.', {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                  });
+                });
+    }else{
+      try{
 
-        // Navigate to home
-        navigate('/');
-      })
-      .catch((error) => {
-        console.error('Error deleting session:', error);
+        const client = new Client();
+        client.setEndpoint("https://fra.cloud.appwrite.io/v1")
+        .setProject("6826c7d8002c4477cb81");
+        const account = new Account(client)
+        account.deleteSession('current')
+        .then(() => {
+          console.log('Session deleted');
+  
+          // Show Toastify success message
+          toast.success('Successfully logged out!', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
 
-        // Show error message in case of failure
-        toast.error('Error logging out. Please try again.', {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      });
+          // Navigate to home
+          navigate('/');})
+      }catch(error){
+        toast.error("logout failed",error)
+      }
+    }
   };
 
   // Handle MoodMigo click

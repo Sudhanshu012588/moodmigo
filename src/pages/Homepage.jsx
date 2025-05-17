@@ -8,12 +8,15 @@ import Footer from '../components/Footer'
 import { useStore } from '../store/store'
 function Homepage() {
   const User = useStore((state) => state.User);
+  const type = useStore((state)=>state.type);
+  const setType = useStore((state)=>state.setType);
   useEffect(() => {
-
+    setType(localStorage.getItem("type"))
     if(!User.isLoggedIn){
       const token = localStorage.getItem('token');
       if(token){
         useStore.setState({User: {isLoggedIn: true}});
+
       }
     }
       

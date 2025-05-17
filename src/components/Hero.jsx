@@ -3,7 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import {useStore} from '../store/store';
 const Hero = () => {
   const { User } = useStore((state) => state);
+  const type = localStorage.getItem('type')
   const navigator = useNavigate();
+  const Navigate = () =>{
+    if(type === "Client"){
+      navigator('/dashboard')
+    }
+    else if(type === "Professional"){
+      navigator('/mentorsdashboard')
+    }
+  }
   return (
     <section className="relative bg-[#f5f6fc] overflow-hidden min-h-screen flex items-center justify-center px-4">
       {/* Background Wave SVG */}
@@ -28,12 +37,12 @@ const Hero = () => {
         </p>
         <div className="mt-8 flex justify-center gap-4 flex-wrap">
           <button className="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300"
-            onClick={() =>{User.isLoggedin?navigator('/dashboard') :navigator('/signup')}}
+            onClick={() =>{User.isLoggedin?Navigate() :navigator('/signup')}}
           >
             Get Started
           </button>
           <button className="border border-purple-500 text-purple-600 font-semibold py-2 px-6 rounded-lg hover:bg-purple-50 transition duration-300"
-          onClick={() =>{User.isLoggedIn?navigator('/dashboard') :navigator('/login')}}
+          onClick={() =>{User.isLoggedIn?Navigate() :navigator('/login')}}
 >
             I Already Have an Account
           </button>

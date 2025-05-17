@@ -12,7 +12,8 @@ import MoodMigoLoading from '../components/Loading';
 import db from '../appwrite/databases';
 import CircularProgress from '../components/ProgressTracker';
 import { Query } from 'appwrite';
-
+import { Client, Databases } from 'appwrite';
+import { toast } from 'react-toastify';
 const upcomingSessions = [
   { id: '1', doctor: 'Dr. Sarah Miller', date: 'Tomorrow, 10:00 AM' },
   { id: '2', doctor: 'Dr. Michael Chen', date: 'May 15, 2:30 PM' },
@@ -35,7 +36,14 @@ const [updateDate, setUpdateDate] = useState(null);
   // Local UI states
   const [isLoading, setIsLoading] = useState(true);
   const [numberOfBlogs, setNumberOfBlogs] = useState(0);
+  const newclient = new Client()
+    .setEndpoint("https://fra.cloud.appwrite.io/v1")
+    .setProject("6826c7d8002c4477cb81")
 
+const newdatabases = new Databases(newclient);
+
+
+const [proffesionals, setProffesional] = useState([])
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -54,10 +62,27 @@ const [updateDate, setUpdateDate] = useState(null);
           Query.equal('UserId', tempUser.$id),
         ]);
         setScore(scoreResponse.documents[0].Score);
-        
+        try {
+  const response = await newdatabases.listDocuments(
+    '6826d3a10039ef4b9444',
+    '6826dd9700303a5efb90'
+  );
+
+  const formattedresponse = response.documents.map(doc => ({
+    id: doc.$id,
+    name: doc.username,
+    createdAt: doc.$createdAt,
+  }));
+  console.log(formattedresponse)
+  setProffesional(formattedresponse);
+} catch (error) {
+  toast.error("Can't fetch any professional");
+  console.error(error);
+}
+
+
         // Fetch total number of blogs
         const blogResponse = await db.blog.list([]);
-
         setNumberOfBlogs(blogResponse.total ?? 0);
         const storedDate = localStorage.getItem("lastAssessmentDate");
       setUpdateDate(storedDate);
@@ -73,7 +98,7 @@ const [updateDate, setUpdateDate] = useState(null);
     };
     fetchData();
   }, [setUser, setScore, navigate]);
-
+    
   return (
     <>
       <Navbar />
@@ -86,14 +111,13 @@ const [updateDate, setUpdateDate] = useState(null);
             className="text-center"
           >
            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-indigo-700 tracking-tight">
-                Welcome back, <span className="font-extrabold text-indigo-700">{user.name}</span>!
+              <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text tracking-tight">
+                Welcome back, <span className="font-extraboldfont-bold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text">{user.name}</span>!
               </h1>
               <p className="text-gray-600 text-sm sm:text-base mt-1">Your personalized mental wellness hub.</p>
             </div>
             <p className="text-gray-600 text-sm sm:text-base mt-2">Let's continue your mental wellness journey</p>
           </motion.div>
-
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -196,32 +220,37 @@ const [updateDate, setUpdateDate] = useState(null);
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Sessions</h3>
                   <div className="space-y-4">
-                    {upcomingSessions.map((session) => (
-                      <div
-                        key={session.id}
-                        className="bg-gray-50 p-5 rounded-lg border border-gray-200 flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-4">
-                          <Headphones className="w-6 h-6 text-purple-500" />
-                          <div>
-                            <p className="text-gray-900 font-medium text-base">{session.doctor}</p>
-                            <p className="text-gray-500 text-sm">{session.date}</p>
-                          </div>
-                        </div>
-                        <button
-                          className={`text-white border px-5 py-2 rounded-md text-sm transition-colors ${
-                            session.id === '1'
-                              ? 'border-green-500 bg-green-500/90 hover:bg-green-600'
-                              : 'border-purple-500 bg-purple-500/90 hover:bg-purple-600'
-                          }`}
-                        >
-                          {session.id === '1' ? 'Join' : 'Reschedule'}
-                        </button>
-                      </div>
-                    ))}
+                   {proffesionals.map((session) => (
+  <div
+    key={session.id}
+    className="bg-gray-50 p-5 rounded-lg border border-gray-200 flex items-center justify-between"
+  >
+    <div className="flex items-center gap-4">
+      <Headphones className="w-6 h-6 text-purple-500" />
+      <div>
+        <p className="text-gray-900 font-medium text-base">{session.name}</p>
+        <p className="text-gray-500 text-sm">
+          {new Date(session.createdAt).toLocaleString()}
+        </p>
+      </div>
+    </div>
+    <button
+      className={`text-white border px-5 py-2 rounded-md text-sm transition-colors ${
+        session.id === '1'
+          ? 'border-green-500 bg-green-500/90 hover:bg-green-600'
+          : 'border-purple-500 bg-purple-500/90 hover:bg-purple-600'
+      }`}
+    >
+      {session.id === '1' ? 'Join' : 'Reschedule'}
+    </button>
+  </div>
+))}
+
                   </div>
-                  <button className="text-blue-500 border-blue-500/30 hover:bg-blue-50/50 w-full py-3 rounded-md mt-6 border transition-colors">
-                    Book a new session
+                  <button className="text-blue-500 border-blue-500/30 hover:bg-blue-50/50 w-full py-3 rounded-md mt-6 border transition-colors"
+                    onClick={()=>navigate('/sessions')}
+                  >
+                    Request a new session
                   </button>
                 </div>
               </motion.div>

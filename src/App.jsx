@@ -1,17 +1,21 @@
 // App.jsx
-import React from "react";
+import React, { useEffect,useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Also include this CSS
-
+import ProfessionalDashboard from "./pages/ProffesionalDashboard";
 import Homepage from "./pages/Homepage";
+import { useStore } from "./store/store";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Manas from "./pages/Manas";
 import Signup from "./pages/Signup";
 import BlogPage from "./pages/BlogPage";
+import MentorBooking from "./pages/BookSession"
 import MoodMigoQuestionnaire from "./pages/Questions";
 const App = () => {
+  const type = useStore((state)=>state.type)
+
   return (
     <>
      <ToastContainer
@@ -32,31 +36,18 @@ const App = () => {
 />
 
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-
-        <Route
-          path="/dashboard"
-          element={<Dashboard/>}
-          />
-
-        <Route
-          path="/login"
-          element={<Login />}
-          />
-
-        <Route
-          path="/signup"
-          element={ <Signup />}
-        />
-      <Route path="/blog" element={<BlogPage/>}/>
-        {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/" />} />
-
-        <Route path="/chat" element={<Manas />} />
-        <Route path="/questionnaire" element={<MoodMigoQuestionnaire />} />
-      </Routes>
-    </BrowserRouter>
+        
+          <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route path="/dashboard" element={<Dashboard/>}/>
+            <Route path="/mentorsdashboard" element={<ProfessionalDashboard/>}/>
+            <Route path="/login" element={<Login />} />
+            <Route path="/sessions" element={<MentorBooking/>}/>
+            <Route path="/chat" element={<Manas />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/questionnaire" element={<MoodMigoQuestionnaire />} />
+          </Routes>
+      </BrowserRouter>
           </>
   );
 };

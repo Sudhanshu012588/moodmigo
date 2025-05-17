@@ -10,8 +10,10 @@ import {create} from 'zustand';
     isLoggedIn: false,
   },
   score: 0,
+  type:"Client",
   setScore: (newScore) => set((state) => ({ score: newScore })), // Add this line
   setUser: (newUser) => set((state) => ({ User: { ...state.User, ...newUser } })), // Change 'user' to 'User'
+setType: (newType) => set((state) => ({ ...state, type: newType }))
 }));
 
 export const useBlog = create((set) => ({

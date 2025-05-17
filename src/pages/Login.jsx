@@ -1,54 +1,74 @@
-import {  useEffect, useState } from "react";
-import { account } from "../appwrite/config";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { account as clientAccount } from "../appwrite/config";
+import { Client, Account } from "appwrite";
 import { login } from "../appwrite/Auth";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
-import {useStore} from "../store/store";
+import LoginToggle from "../components/Slider";
+import { useStore } from "../store/store";
 
 const Login = () => {
-  const globaluser = useStore((state) => state.User);
-  const setUser = useStore((state) => state.setUser);
   const navigate = useNavigate();
+  const setUser = useStore((state) => state.setUser);
+  // const userType = useStore((state) => state.type);
+  // const setType = useStore((state) => state.setType);
+  const globalUser = useStore((state) => state.User);
 
-  const [form, setform] = useState({
-    email: "",
-    password: "",
-  });
-  // useEffect(() => {
-  //   console.log("User:", globaluser);
-  // },[globaluser]);
+  const [form, setForm] = useState({ email: "", password: "" });
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setform((prevUser) => ({
-      ...prevUser,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
+
+  const toggleUserType = () => {
+  // const newType = userType === "Client" ? "Professional" : "Client";
+  // setType(newType);
+  // localStorage.setItem("type", newType); // Update localStorage on toggle
+};
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-
+    // localStorage.setItem("type", userType);
+    const userType = localStorage.getItem("type")
     try {
-      await login(form.email, form.password);
-      const user = await account.get();
+      if (userType === "Client") {
+        await login(form.email, form.password);
+        const user = await clientAccount.get();
 
-      setUser({
-        id: user.$id,
-        name: user.name,
-        email: user.email,
-        password: form.password,
-        isLoggedIn: true,
-      });
+        setUser({
+          id: user.$id,
+          name: user.name,
+          email: user.email,
+          password: form.password,
+          isLoggedIn: true,
+        });
 
-      toast.success("Login successful!");
-      // console.log("User:", user);
-      navigate("/dashboard");
+        toast.success("Login successful!");
+        navigate("/dashboard");
+      } else {
+        // For Professionals
+        const profClient = new Client();
+        profClient
+          .setEndpoint("https://fra.cloud.appwrite.io/v1")
+          .setProject("6826c7d8002c4477cb81");
+
+        const profAccount = new Account(profClient);
+        await profAccount.createEmailPasswordSession(form.email, form.password);
+        const { jwt } = await profAccount.createJWT(); // 🔄 Use correct profAccount
+        localStorage.setItem("token", jwt);
+        // const proffesionaluser = await clientAccount.get();
+        // console.log(proffesionaluser) 
+
+        toast.success("Login successful!");
+        navigate("/mentorsdashboard");
+      }
     } catch (error) {
       console.error("Login failed:", error);
-      toast.error("Login failed.");
+      toast.error("Login failed. Please check your credentials.");
     }
   };
-  const name = globaluser.name;
 
   return (
     <>
@@ -60,10 +80,12 @@ const Login = () => {
           </h1>
         </div>
 
+        <LoginToggle onChange={toggleUserType} />
+
         <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
           <h2 className="text-2xl font-semibold text-center mb-4 text-gray-900">
-  Welcome Back{globaluser.name}!
-</h2>
+            Welcome Back{globalUser?.name ? `, ${globalUser.name}` : ""}!
+          </h2>
 
           <p className="text-sm text-center text-gray-600 mb-6">
             Log in to continue your mental wellness journey.
@@ -78,9 +100,9 @@ const Login = () => {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Enter your email"
                 value={form.email}
                 onChange={handleInputChange}
+                placeholder="Enter your email"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
@@ -98,9 +120,9 @@ const Login = () => {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Enter your password"
                 value={form.password}
                 onChange={handleInputChange}
+                placeholder="Enter your password"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
