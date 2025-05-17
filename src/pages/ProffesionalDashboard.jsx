@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Users, UserPlus, MessageSquare, Calendar, FileText, Bell, CheckCircle, Clock,
+  Users, UserPlus, MessageSquare, Calendar, Bell, CheckCircle, Clock,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useStore } from '../store/store';
@@ -24,6 +24,8 @@ const ProfessionalDashboard = () => {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [rescheduleId, setRescheduleId] = useState(null);
   const [rescheduleDate, setRescheduleDate] = useState(new Date());
+
+  const [link,setLink]=useState("")
 
   // Fetch logged-in professional user info
   useEffect(() => {
@@ -78,62 +80,69 @@ const ProfessionalDashboard = () => {
   }, [user]);
 
   // Confirm a session and create appointment
- const handleConfirm = async (sessionId) => {
-  try {
-    const client = new Client()
-      .setEndpoint("https://fra.cloud.appwrite.io/v1")
-      .setProject("6820683500148a9573af");
+  const handleConfirm = async (sessionId) => {
+    try {
+      const client = new Client()
+        .setEndpoint("https://fra.cloud.appwrite.io/v1")
+        .setProject("6820683500148a9573af");
 
-    const databases = new Databases(client);
+      const databases = new Databases(client);
 
-    await databases.updateDocument(
-      "6820add100102346d8b7",
-      "68280ac50027ed33d5d2",
-      sessionId,
-      { confirmation: true }
-    );
-
-    toast.success("Session confirmed!");
-
-    // Also create appointment in professional project
-    const proClient = new Client()
-      .setEndpoint("https://fra.cloud.appwrite.io/v1")
-      .setProject("6826c7d8002c4477cb81");
-
-    const profDatabases = new Databases(proClient);
-
-    const session = sessionArray.find(s => s.$id === sessionId);
-
-    if (session) {
-      await profDatabases.createDocument(
-        "6826d3a10039ef4b9444",
-        "68275039000cb886ff5c",
-        ID.unique(),
-        {
-          Mentorid: session.Mentorid,
-          ClientId: session.Clientid,
-          date: session.date,
-          time: session.time,
-        }
+      await databases.updateDocument(
+        "6820add100102346d8b7",
+        "68280ac50027ed33d5d2",
+        sessionId,
+        { confirmation: true }
       );
-      toast.success("Appointment created!");
+
+      toast.success("Session confirmed!");
+
+      // Also create appointment in professional project
+      const proClient = new Client()
+        .setEndpoint("https://fra.cloud.appwrite.io/v1")
+        .setProject("6826c7d8002c4477cb81");
+
+      const profDatabases = new Databases(proClient);
+
+      const session = sessionArray.find(s => s.$id === sessionId);
+        const roomName = `${sessionId}`;
+    const meetingUrl = `https://meet.jit.si/${roomName}`;
+      if (session) {
+        await profDatabases.createDocument(
+          "6826d3a10039ef4b9444",
+          "68275039000cb886ff5c",
+          ID.unique(),
+          {
+            Mentorid: session.Mentorid,
+            ClientId: session.Clientid,
+            date: session.date,
+            time: session.time,
+            meetingurl: meetingUrl
+          }
+        );
+        toast.success("Appointment created!");
+      }
+
+      // Update local state: move session from unconfirmed to confirmed
+      setSessionsArray(prev => prev.filter(s => s.$id !== sessionId));
+
+      if (session) {
+        setConfirmedAppointments(prev => [...prev, { ...session, confirmation: true }]);
+      }
+
+    } catch (error) {
+      toast.error("Failed to confirm session");
+      console.error(error);
     }
+  };
 
-    // Update local state: move session from unconfirmed to confirmed
-    setSessionsArray(prev => prev.filter(s => s.$id !== sessionId));
+  // Show DatePicker for rescheduling
+  const handleShowReschedule = (id, currentDate) => {
+    setRescheduleId(id);
+    setRescheduleDate(new Date(currentDate));
+  };
 
-    if (session) {
-      setConfirmedAppointments(prev => [...prev, { ...session, confirmation: true }]);
-    }
-
-  } catch (error) {
-    toast.error("Failed to confirm session");
-    console.error(error);
-  }
-};
-
-
-  // Handle actual date change and update document
+  // Handle date change and update document
   const handleDateChange = async (date) => {
     if (!(date instanceof Date)) {
       date = new Date(date);
@@ -176,35 +185,41 @@ const ProfessionalDashboard = () => {
     }
   };
 
- const handleDelete = async (documentId) => {
-  if (!window.confirm("Are you sure you want to delete this session?")) {
-    return; // User cancelled deletion
-  }
+  const handleDelete = async (documentId) => {
+    if (!window.confirm("Are you sure you want to delete this session?")) {
+      return; // User cancelled deletion
+    }
 
-  try {
-    const client = new Client()
-      .setEndpoint("https://fra.cloud.appwrite.io/v1")
-      .setProject("6820683500148a9573af"); // Use the correct project ID
+    try {
+      const client = new Client()
+        .setEndpoint("https://fra.cloud.appwrite.io/v1")
+        .setProject("6820683500148a9573af"); // Use the correct project ID
 
-    const databases = new Databases(client);
+      const databases = new Databases(client);
 
-    await databases.deleteDocument(
-      "6820add100102346d8b7",   // databaseId
-      "68280ac50027ed33d5d2",  // collectionId
-      documentId               // the $id of the document to delete
-    );
+      await databases.deleteDocument(
+        "6820add100102346d8b7",   // databaseId
+        "68280ac50027ed33d5d2",  // collectionId
+        documentId               // the $id of the document to delete
+      );
 
-    toast.success("Session deleted successfully!");
+      toast.success("Session deleted successfully!");
 
-    // Remove the deleted session from state to update UI
-    setSessionsArray(prev => prev.filter(s => s.$id !== documentId));
-    setConfirmedAppointments(prev => prev.filter(c => c.$id !== documentId));
+      // Remove the deleted session from state to update UI
+      setSessionsArray(prev => prev.filter(s => s.$id !== documentId));
+      setConfirmedAppointments(prev => prev.filter(c => c.$id !== documentId));
 
-  } catch (error) {
-    console.error("Failed to delete document:", error);
-    toast.error("Failed to delete the session.");
-  }
-};
+    } catch (error) {
+      console.error("Failed to delete document:", error);
+      toast.error("Failed to delete the session.");
+    }
+  };
+
+  const handleJoinMeeting = (id) => {
+    const roomName = `${id}`;
+    const meetingUrl = `https://meet.jit.si/${roomName}`;
+    window.open(meetingUrl, "_blank");
+  };
 
   if (isLoading) return <MoodMigoLoading />;
 
@@ -265,108 +280,94 @@ const ProfessionalDashboard = () => {
                   <Icon className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{count}</h3>
-                  <p className="text-gray-500 font-medium">{label}</p>
+                  <p className="text-2xl font-bold">{count}</p>
+                  <p className="text-gray-500">{label}</p>
                 </div>
               </div>
             ))}
           </motion.section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <motion.section className="lg:col-span-2 bg-white rounded-xl p-6 shadow-md overflow-auto max-h-[600px]">
-              <h2 className="text-xl font-semibold mb-6 text-gray-900">Upcoming Sessions</h2>
-              {sessionArray.length > 0 ? (
-                <div className="space-y-4">
-                  {sessionArray.map(({ $id, username, date, time }) => (
-                    <div key={$id} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border hover:shadow-lg">
-                      <div>
-                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                          <Users className="w-5 h-5 text-blue-500" />
-                          {username}
-                        </h3>
-                        <p className="text-gray-500 text-sm flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          {date} at {time}
-                        </p>
-                        {rescheduleId === $id && (
-                          <DatePicker
-                            selected={rescheduleDate}
-                            onChange={handleDateChange}
-                            showTimeSelect
-                            dateFormat="Pp"
-                            className="mt-2 border p-2 rounded-md text-sm"
-                            minDate={new Date()}
-                          />
-                        )}
-                      </div>
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => handleConfirm($id)}
-                          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-full text-sm flex items-center gap-1"
-                        >
-                          <CheckCircle className="w-5 h-5" /> Confirm
-                        </button>
-                        <button
-                          onClick={() => handleShowReschedule($id, date)}
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-full text-sm"
-                        >
-                          Reschedule
-                        </button>
-                        <button
-                          onClick={() => handleDelete($id)}
-                          className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full text-sm"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+          {/* Unconfirmed session requests */}
+          <motion.section>
+            <h2 className="text-xl font-semibold mb-4">Session Requests</h2>
+            {sessionArray.length === 0 ? (
+              <p className="text-gray-500">No session requests at the moment.</p>
+            ) : (
+              sessionArray.map(({ $id, username, date, time }) => (
+                <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
+                  <div>
+                    <p><span className="font-semibold">Client:</span> {username}</p>
+                    <p><span className="font-semibold">Date:</span> {date}</p>
+                    <p><span className="font-semibold">Time:</span> {time}</p>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={() => handleConfirm($id)}
+                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      onClick={() => handleShowReschedule($id, date)}
+                      className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                    >
+                      Reschedule
+                    </button>
+                    <button
+                      onClick={() => handleDelete($id)}
+                      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                <p>No upcoming sessions found.</p>
-              )}
-            </motion.section>
+              ))
+            )}
 
-           <motion.section 
-  className="bg-gray-50 rounded-xl p-6 shadow-lg max-h-[600px] overflow-auto"
-  initial={{ opacity: 0, y: 10 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.3 }}
->
-  <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Confirmed Appointments</h2>
+            {/* Reschedule DatePicker */}
+            {rescheduleId && (
+              <div className="mb-6">
+                <DatePicker
+                  selected={rescheduleDate}
+                  onChange={handleDateChange}
+                  inline
+                  showTimeSelect
+                  dateFormat="MMMM d, yyyy h:mm aa"
+                  minDate={new Date()}
+                />
+                <button
+                  onClick={() => setRescheduleId(null)}
+                  className="mt-2 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </motion.section>
 
-  {confirmedAppointments.length > 0 ? (
-    <ul className="space-y-4">
-      {confirmedAppointments.map(({ $id, date, time, username }) => (
-        <li 
-          key={$id} 
-          className="bg-white rounded-lg p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow duration-200"
-        >
-          <div className="flex items-center space-x-4">
-            {/* Placeholder avatar circle */}
-            <div className="w-12 h-12 rounded-full bg-indigo-200 flex items-center justify-center text-indigo-700 font-semibold text-lg uppercase">
-              {username.charAt(0)}
-            </div>
-
-            <div>
-              <p className="text-gray-900 font-medium">{username}</p>
-              <p className="text-sm text-gray-600">
-                Session on <span className="font-semibold">{date}</span> at <span className="font-semibold">{time}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Optional: Add action buttons here */}
-          {/* <button className="text-red-600 hover:text-red-800 font-semibold">Delete</button> */}
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <p className="text-gray-500 italic">No confirmed appointments yet.</p>
-  )}
-</motion.section>
-
-          </div>
+          {/* Confirmed Appointments */}
+          <motion.section>
+            <h2 className="text-xl font-semibold mb-4">Confirmed Appointments</h2>
+            {confirmedAppointments.length === 0 ? (
+              <p className="text-gray-500">No confirmed appointments.</p>
+            ) : (
+              confirmedAppointments.map(({ $id, username, date, time }) => (
+                <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
+                  <div>
+                    <p><span className="font-semibold">Client:</span> {username}</p>
+                    <p><span className="font-semibold">Date:</span> {date}</p>
+                    <p><span className="font-semibold">Time:</span> {time}</p>
+                  </div>
+                  <button
+                    onClick={() => handleJoinMeeting($id)}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+                  >
+                    Join Meeting
+                  </button>
+                </div>
+              ))
+            )}
+          </motion.section>
         </motion.div>
       </main>
     </>

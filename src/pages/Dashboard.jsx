@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Headphones, Calendar, BookOpen, MessageCircle,
-  Users
+  Headphones, Calendar, BookOpen, MessageCircle, Users
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -11,13 +10,8 @@ import { account } from '../appwrite/config';
 import MoodMigoLoading from '../components/Loading';
 import db from '../appwrite/databases';
 import CircularProgress from '../components/ProgressTracker';
-import { Query } from 'appwrite';
-import { Client, Databases } from 'appwrite';
+import { Query, Client, Databases } from 'appwrite';
 import { toast } from 'react-toastify';
-const upcomingSessions = [
-  { id: '1', doctor: 'Dr. Sarah Miller', date: 'Tomorrow, 10:00 AM' },
-  { id: '2', doctor: 'Dr. Michael Chen', date: 'May 15, 2:30 PM' },
-];
 
 const journalEntries = [
   { id: '1', title: 'Morning Reflection', date: '2 days ago', excerpt: "Today I woke up feeling more energetic..." },
@@ -32,22 +26,23 @@ const Dashboard = () => {
   const setUser = useStore(state => state.setUser);
   const score = useStore(state => state.score);
   const setScore = useStore(state => state.setScore);
-const [updateDate, setUpdateDate] = useState(null);
-  // Local UI states
+
+  // Local state
+  const [updateDate, setUpdateDate] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [numberOfBlogs, setNumberOfBlogs] = useState(0);
-  const newclient = new Client()
+  const [url,setUrl]=useState("")
+  const [professionals, setProfessionals] = useState([]);
+  // Appwrite client and database instances
+  const newClient = new Client()
     .setEndpoint("https://fra.cloud.appwrite.io/v1")
-    .setProject("6826c7d8002c4477cb81")
+    .setProject("6826c7d8002c4477cb81");
+  const newDatabases = new Databases(newClient);
 
-const newdatabases = new Databases(newclient);
-
-
-const [proffesionals, setProffesional] = useState([])
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch current user info
+        // Get user account info
         const tempUser = await account.get();
         setUser({
           id: tempUser.$id,
@@ -57,67 +52,96 @@ const [proffesionals, setProffesional] = useState([])
           isLoggedIn: true,
         });
 
-        // Fetch latest questionnaire score for the user
+        // Fetch latest questionnaire score
         const scoreResponse = await db.UsersAttributes.list([
           Query.equal('UserId', tempUser.$id),
         ]);
-        setScore(scoreResponse.documents[0].Score);
+        if (scoreResponse.documents.length > 0) {
+          setScore(scoreResponse.documents[0].Score);
+        } else {
+          setScore(null);
+        }
+
+        // Fetch professionals linked to the user
         try {
-  const response = await newdatabases.listDocuments(
-    '6826d3a10039ef4b9444',
-    '6826dd9700303a5efb90'
-  );
+          const client = new Client()
+            .setEndpoint("https://fra.cloud.appwrite.io/v1")
+            .setProject("6826c7d8002c4477cb81");
+          const database = new Databases(client);
 
-  const formattedresponse = response.documents.map(doc => ({
-    id: doc.$id,
-    name: doc.username,
-    createdAt: doc.$createdAt,
-  }));
-  console.log(formattedresponse)
-  setProffesional(formattedresponse);
-} catch (error) {
-  toast.error("Can't fetch any professional");
-  console.error(error);
-}
+          const response = await database.listDocuments(
+            "6826d3a10039ef4b9444",
+            "68275039000cb886ff5c",
+            [Query.equal("ClientId", tempUser.$id)]
+          );
 
+          if (response.documents.length > 0) {
+            setProfessionals(response.documents);
 
-        // Fetch total number of blogs
+            // Example: extract URL field if exists (replace 'urlFieldName' with actual field)
+            const firstUrl = response.documents[0]?.meetingurl || '';
+            setUrl(firstUrl);
+            
+            // console.log(professionals)
+          } else {
+            setUrl('');
+          }
+        } catch (error) {
+          toast.error("Can't fetch any professionals");
+          // console.error(error);
+        }
+
+        // Fetch total blogs count
         const blogResponse = await db.blog.list([]);
         setNumberOfBlogs(blogResponse.total ?? 0);
+
+        // Load last assessment date from localStorage
         const storedDate = localStorage.getItem("lastAssessmentDate");
-      setUpdateDate(storedDate);
+        setUpdateDate(storedDate);
+
       } catch (error) {
-        console.error("User fetch failed:", error);
+        // console.error("User fetch failed:", error);
         setUser(null);
         setScore(null);
-        // Optionally redirect to login page if unauthorized
+        // Optionally redirect to login if unauthorized
         // navigate('/login');
       } finally {
         setIsLoading(false);
       }
     };
+
     fetchData();
   }, [setUser, setScore, navigate]);
-    
+
+  // Debug log url state
+  // console.log('URL:', url);
+
+  if (isLoading) return <MoodMigoLoading />;
+
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto space-y-8">
+          {/* Welcome Section */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="text-center"
           >
-           <div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text tracking-tight">
-                Welcome back, <span className="font-extraboldfont-bold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text">{user.name}</span>!
-              </h1>
-              <p className="text-gray-600 text-sm sm:text-base mt-1">Your personalized mental wellness hub.</p>
-            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text tracking-tight">
+              Welcome back,{' '}
+              <span className="font-extrabold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text">
+                {user?.name || 'User'}
+              </span>
+              !
+            </h1>
+            <p className="text-gray-600 text-sm sm:text-base mt-1">Your personalized mental wellness hub.</p>
             <p className="text-gray-600 text-sm sm:text-base mt-2">Let's continue your mental wellness journey</p>
           </motion.div>
+
+          {/* Quick Actions */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -146,9 +170,9 @@ const [proffesionals, setProffesional] = useState([])
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <Calendar className="w-6 h-6 text-blue-500" />
-                  <h2 className="text-gray-900 font-semibold text-lg">Fill The Questionnaire </h2>
+                  <h2 className="text-gray-900 font-semibold text-lg">Fill The Questionnaire</h2>
                 </div>
-                <p className="text-gray-500 text-sm">Click here to fill our questionnaire </p>
+                <p className="text-gray-500 text-sm">Click here to fill our questionnaire</p>
               </div>
             </button>
 
@@ -167,7 +191,9 @@ const [proffesionals, setProffesional] = useState([])
             </button>
           </motion.div>
 
-          <div className="grid grid-cols-1  lg:grid-cols-4 gap-8">
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Left Sidebar */}
             <div className="lg:col-span-1 space-y-8">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -176,20 +202,20 @@ const [proffesionals, setProffesional] = useState([])
                 className="space-y-6"
               >
                 <div className="flex flex-col items-center">
-            <div className="flex justify-center mb-2">
-                <span className="bg-gradient-to-r from-purple-100 to-blue-100 text-gray-900 border-0 shadow-sm shadow-purple-500/20 px-4 py-2 rounded-full text-sm inline-flex items-center">
-                    Your Progress
-                </span>
-            </div>
-            <div className="flex items-center justify-center">
-                <CircularProgress score={score} />
-            </div>
-            <div className="flex justify-center mt-2">
-                <span className="bg-gradient-to-r from-purple-100 to-blue-100 text-gray-900 border-0 shadow-sm shadow-purple-500/20 px-4 py-2 rounded-full text-sm inline-flex items-center">
-                    ⁠Last Updated on: {updateDate}
-                </span>
-            </div>
-        </div>
+                  <div className="flex justify-center mb-2">
+                    <span className="bg-gradient-to-r from-purple-100 to-blue-100 text-gray-900 border-0 shadow-sm shadow-purple-500/20 px-4 py-2 rounded-full text-sm inline-flex items-center">
+                      Your Progress
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <CircularProgress score={score} />
+                  </div>
+                  <div className="flex justify-center mt-2">
+                    <span className="bg-gradient-to-r from-purple-100 to-blue-100 text-gray-900 border-0 shadow-sm shadow-purple-500/20 px-4 py-2 rounded-full text-sm inline-flex items-center">
+                      ⁠Last Updated on: {updateDate || 'N/A'}
+                    </span>
+                  </div>
+                </div>
               </motion.div>
 
               <motion.div
@@ -198,8 +224,10 @@ const [proffesionals, setProffesional] = useState([])
                 transition={{ delay: 0.7, duration: 0.5 }}
               >
                 <div className="bg-gradient-to-br from-purple-100/90 to-white/90 text-gray-900 border border-gray-200 shadow-md rounded-xl p-6 space-y-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Upgrade to Premium</h2>
-                  <p className="text-gray-500 text-sm">Get unlimited access to all features and premium content.</p>
+                  <h2 className="text-lg font-semibold">Upgrade to Premium</h2>
+                  <p className="text-gray-500 text-sm">
+                    Get unlimited access to all features and premium content.
+                  </p>
                   <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-md mt-4 transition-colors">
                     Upgrade Now
                   </button>
@@ -207,81 +235,71 @@ const [proffesionals, setProffesional] = useState([])
               </motion.div>
             </div>
 
+            {/* Right Content */}
             <div className="lg:col-span-3 space-y-8">
+              {/* Upcoming Sessions */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
-                <div className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-xl p-6">
-                  <div className="flex items-center gap-3 mb-5">
-                    <Calendar className="w-7 h-7 text-blue-500" />
-                    <h2 className="text-gray-900 text-2xl font-semibold">Your Dashboard</h2>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Sessions</h3>
+                <div className="bg-white/90 backdrop-blur-md rounded-xl p-6 border border-gray-200 shadow-md">
+                  <h3 className="text-gray-900 font-bold mb-4 text-lg">Upcoming Sessions</h3>
+                  {professionals.length === 0 && (
+                    <p className="text-gray-500 text-sm">No upcoming sessions.</p>
+                  )}
                   <div className="space-y-4">
-                   {proffesionals.map((session) => (
-  <div
-    key={session.id}
-    className="bg-gray-50 p-5 rounded-lg border border-gray-200 flex items-center justify-between"
-  >
-    <div className="flex items-center gap-4">
-      <Headphones className="w-6 h-6 text-purple-500" />
-      <div>
-        <p className="text-gray-900 font-medium text-base">{session.name}</p>
-        <p className="text-gray-500 text-sm">
-          {new Date(session.createdAt).toLocaleString()}
-        </p>
-      </div>
-    </div>
-    <button
-      className={`text-white border px-5 py-2 rounded-md text-sm transition-colors ${
-        session.id === '1'
-          ? 'border-green-500 bg-green-500/90 hover:bg-green-600'
-          : 'border-purple-500 bg-purple-500/90 hover:bg-purple-600'
-      }`}
-    >
-      {session.id === '1' ? 'Join' : 'Reschedule'}
-    </button>
-  </div>
-))}
-
+                    {professionals.map((session) => (
+                      <div
+                        key={session.$id}
+                        className="bg-gray-50 p-5 rounded-lg border border-gray-200 flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-4">
+                          <Headphones className="w-6 h-6 text-purple-500" />
+                          <div>
+                            <p className="text-gray-900 font-medium text-base">{session.name}</p>
+                            <p className="text-gray-500 text-sm">
+                              {session.date}
+                            </p>
+                            <p className="text-gray-500 text-sm">
+                              {session.time}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+  className={`text-white border px-5 py-2 rounded-md text-sm transition-colors 
+    
+       border-green-500 bg-green-500/90 hover:bg-green-600`
+      
+  }
+  onClick={() => window.open(url, '_blank')}
+>
+  join
+</button>
+                      </div>
+                    ))}
                   </div>
-                  <button className="text-blue-500 border-blue-500/30 hover:bg-blue-50/50 w-full py-3 rounded-md mt-6 border transition-colors"
-                    onClick={()=>navigate('/sessions')}
-                  >
-                    Request a new session
-                  </button>
                 </div>
               </motion.div>
 
+              {/* Journal Entries */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
-                className="space-y-6"
               >
-                <div className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-xl p-6">
-                  <div className="flex items-center gap-3 mb-5">
-                    <BookOpen className="w-7 h-7 text-green-500" />
-                    <h2 className="text-gray-900 text-2xl font-semibold">Journal Entries</h2>
-                  </div>
-                  <p className="text-gray-500 text-sm mb-4">Your latest journal entries</p>
-                  <div className="space-y-5">
-                    {journalEntries.map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="bg-gray-50 p-5 rounded-lg border border-gray-200 space-y-2 group"
-                      >
-                        <h3 className="text-lg font-semibold text-gray-900">{entry.title}</h3>
-                        <p className="text-gray-500 text-sm">{entry.date}</p>
-                        <p className="text-gray-700 mt-2 line-clamp-2">{entry.excerpt}</p>
-                        <button className="text-blue-500 transition-colors hover:text-blue-600 inline-flex items-center gap-1.5">
-                          Read more
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                <div className="bg-white/90 backdrop-blur-md rounded-xl p-6 border border-gray-200 shadow-md">
+                  <h3 className="text-gray-900 font-bold mb-4 text-lg">Recent Journal Entries</h3>
+                  {journalEntries.map(entry => (
+                    <div
+                      key={entry.id}
+                      className="bg-gray-50 p-4 rounded-md border border-gray-200 mb-4"
+                    >
+                      <h4 className="text-gray-800 font-semibold text-md">{entry.title}</h4>
+                      <p className="text-gray-500 text-xs mb-2">{entry.date}</p>
+                      <p className="text-gray-600 text-sm">{entry.excerpt}</p>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             </div>
