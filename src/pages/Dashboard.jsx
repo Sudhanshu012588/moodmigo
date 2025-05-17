@@ -280,6 +280,13 @@ const Dashboard = () => {
                     ))}
                   </div>
                 </div>
+                  <button
+  onClick={() => navigate('/sessions')}
+  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 text-sm font-semibold"
+>
+  Request New Session
+</button>
+
               </motion.div>
 
               {/* Journal Entries */}
