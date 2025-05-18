@@ -27,7 +27,7 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
   const setUser = useStore(state => state.setUser);
   const score = useStore(state => state.score);
   const setScore = useStore(state => state.setScore);
-
+  const [numberoftimes,setNumberofTimes] = useState(0)
   // Local state
   const [updateDate, setUpdateDate] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,6 +59,8 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
         ]);
         if (scoreResponse.documents.length > 0) {
           setScore(scoreResponse.documents[0].Score);
+          setNumberofTimes(scoreResponse.documents[0].NumberOfTimesFilled)
+          setUpdateDate(scoreResponse.documents[0].lastUpdatedDate);
         } else {
           setScore(null);
         }
@@ -98,8 +100,7 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
         setNumberOfBlogs(blogResponse.total ?? 0);
 
         // Load last assessment date from localStorage
-        const storedDate = localStorage.getItem("lastAssessmentDate");
-        setUpdateDate(storedDate);
+        
 
       } catch (error) {
         // console.error("User fetch failed:", error);
@@ -197,7 +198,7 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Left Sidebar */}
             <div className="lg:col-span-1 space-y-8">
-              <motion.div
+              {numberoftimes>1?<motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
@@ -218,9 +219,21 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
                     </span>
                   </div>
                 </div>
-              </motion.div>
+              </motion.div>:<div className="flex flex-col md:flex-row items-center justify-between gap-2 bg-gradient-to-r from-purple-200 to-blue-200 text-gray-800 px-4 py-2 rounded-xl text-sm font-medium shadow-sm border border-purple-300">
+  <div className="flex items-center gap-2">
+    <span role="img" aria-label="calendar">📅</span>
+    <span>Please complete the questionnaire again after 42 days to track your progress.</span>
+  </div>
+  <div className="bg-white/60 text-gray-700 border border-purple-300 px-3 py-1 rounded-full text-xs shadow-sm">
+    Last Updated: {updateDate || 'N/A'}
+  </div>
+</div>
 
-              <motion.div
+
+
+} 
+
+              {/* <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
@@ -234,7 +247,7 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
                     Upgrade Now
                   </button>
                 </div>
-              </motion.div>
+              </motion.div> */}
             </div>
 
             {/* Right Content */}

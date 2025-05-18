@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertTriangle, BookOpen, Heart, Smile } from "lucide-react";
 import db from "../appwrite/databases";
-import {ID} from "appwrite";
+import {ID, Query} from "appwrite";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { toast } from "react-toastify";
@@ -68,27 +68,26 @@ const initialFormState = {
 };
 const MoodMigoQuestionnaire = () => {
   const userID = useStore((state) => state.User.id);
-  const score = useStore((state) => state.score);
-  const setScore = useStore((state) => state.setScore);
+  // const score = useStore((state) => state.score);
+  // const setScore = useStore((state) => state.setScore);
   const [form, setForm] = useState(initialFormState);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const user = useStore((state) => state.User);
   const setUser = useStore((state) => state.setUser);
   const navigate = useNavigate();
+  const [score,setScore]=useState(0)
 
  const handleSubmit = async (e) => {
+  console.log(typeof(userID))
   e.preventDefault();
   setIsSubmitted(true);
 
   try {
-    // Normalize coping strategies
-    const copingStrategies = Array.isArray(form.copingStrategies) ? form.copingStrategies : [];
-
-    // Truncate helper
     const truncate = (str, maxLen = 25) =>
       typeof str === "string" ? (str.length > maxLen ? str.slice(0, maxLen) : str) : "";
 
-    // Clean and truncate form data
+    const copingStrategies = Array.isArray(form.copingStrategies) ? form.copingStrategies : [];
+
     const cleanedForm = {
       ...form,
       CopingStrategies: copingStrategies,
@@ -118,83 +117,130 @@ const MoodMigoQuestionnaire = () => {
       hospitalized: truncate(form.hospitalized),
       hospitalReason: truncate(form.hospitalReason),
     };
+    
+    const geminiScoreRaw = await getScore(JSON.stringify(cleanedForm));
+    const geminiScore = Math.round(Number(geminiScoreRaw.totalScore));
+    console.log("gemini",geminiScore)
+    setScore(geminiScore);
+    console.log("StoreScore",score)
+    const today = new Date();
+const formattedDate = today.toLocaleDateString('en-GB');
+    // Save to Questionnaire collection
+    const getquestionare = await db.Questionare.list([Query.equal("userid",userID)])
+    if(getquestionare.documents.length === 0){
 
-    // Save to Questionare collection
-    await db.Questionare.create({
-      FullName: cleanedForm["Full Name"],
-      DateOfBirth: cleanedForm["Date of Birth"],
-      Gender: cleanedForm["Gender"],
-      DateOfAssessment: cleanedForm["Date of Assessment"],
-      ContactInformation: cleanedForm["Contact Information"],
-      EmergencyContact: cleanedForm["Emergency Contact"],
-      OccupationSchool: cleanedForm["Occupation / School"],
-
-      Diagnosed: cleanedForm.diagnosed,
-      Treatment: cleanedForm.treatment,
-      TreatmentType: cleanedForm.treatmentType,
-      Provider: cleanedForm.provider,
-      Hospitalized: cleanedForm.hospitalized,
-      HospitalReason: cleanedForm.hospitalReason,
-
-      FeelingDownDepressedOrHopeless: cleanedForm["Feeling down, depressed, or hopeless"],
-      LittleInterestOrPleasureInThings: cleanedForm["Little interest or pleasure in doing things"],
-      FeelingNervousAnxiousOrOnEdge: cleanedForm["Feeling nervous, anxious, or on edge"],
-      TroubleRelaxing: cleanedForm["Trouble relaxing"],
+      const questionareResponse = await db.Questionare.create({
+        userid:userID,
+        FullName: cleanedForm["Full Name"],
+        DateOfBirth: cleanedForm["Date of Birth"],
+        Gender: cleanedForm["Gender"],
+        DateOfAssessment: cleanedForm["Date of Assessment"],
+        ContactInformation: cleanedForm["Contact Information"],
+        EmergencyContact: cleanedForm["Emergency Contact"],
+        OccupationSchool: cleanedForm["Occupation / School"],
+        Diagnosed: cleanedForm.diagnosed,
+        Treatment: cleanedForm.treatment,
+        TreatmentType: cleanedForm.treatmentType,
+        Provider: cleanedForm.provider,
+        Hospitalized: cleanedForm.hospitalized,
+        HospitalReason: cleanedForm.hospitalReason,
+        FeelingDownDepressedOrHopeless: cleanedForm["Feeling down, depressed, or hopeless"],
+        LittleInterestOrPleasureInThings: cleanedForm["Little interest or pleasure in doing things"],
+        FeelingNervousAnxiousOrOnEdge: cleanedForm["Feeling nervous, anxious, or on edge"],
+        TroubleRelaxing: cleanedForm["Trouble relaxing"],
       ExcessiveWorry: cleanedForm["Excessive worry"],
       FatigueorLowEnergy: cleanedForm["Fatigue or low energy"],
       ChangeInAppetite: cleanedForm["Changes in appetite"],
       SleepDisturbance: cleanedForm["Sleep disturbances"],
       DifficultyConcentrating: cleanedForm["Difficulty concentrating"],
       ThoughtsOfSelfHarmOrSuicide: cleanedForm["Thoughts of self-harm or suicide"],
-
       DailyFunction: cleanedForm.dailyFunction,
       SubstanceUse: cleanedForm.substanceUse,
       SubstanceDetails: cleanedForm.substanceDetails,
       LifeChanged: cleanedForm.lifeChanges,
       ChangeDetails: cleanedForm.changeDetails,
-
       Connectedness: cleanedForm.connectedness,
       Safety: cleanedForm.safety,
       SafetyDetails: cleanedForm.safetyDetails,
       Hobbies: cleanedForm.hobbies,
       CopingStrategies: cleanedForm.CopingStrategies,
-    });
+    }).then(async()=>{
+      const attributesResponse = await db.UsersAttributes.create({
+        UserId:userID,
+        Score:geminiScore,
+        lastUpdatedDate:formattedDate,
+        NumberOfTimesFilled:1
+      })
+    })
+  }
+  else{
+    // console.log(getquestionare.documents[0].$id)
+    const updateQuestionareResponse = await db.Questionare.update(getquestionare.documents[0].$id,{
+        userid:userID,
+        FullName: cleanedForm["Full Name"],
+        DateOfBirth: cleanedForm["Date of Birth"],
+        Gender: cleanedForm["Gender"],
+        DateOfAssessment: cleanedForm["Date of Assessment"],
+        ContactInformation: cleanedForm["Contact Information"],
+        EmergencyContact: cleanedForm["Emergency Contact"],
+        OccupationSchool: cleanedForm["Occupation / School"],
+        Diagnosed: cleanedForm.diagnosed,
+        Treatment: cleanedForm.treatment,
+        TreatmentType: cleanedForm.treatmentType,
+        Provider: cleanedForm.provider,
+        Hospitalized: cleanedForm.hospitalized,
+        HospitalReason: cleanedForm.hospitalReason,
+        FeelingDownDepressedOrHopeless: cleanedForm["Feeling down, depressed, or hopeless"],
+        LittleInterestOrPleasureInThings: cleanedForm["Little interest or pleasure in doing things"],
+        FeelingNervousAnxiousOrOnEdge: cleanedForm["Feeling nervous, anxious, or on edge"],
+        TroubleRelaxing: cleanedForm["Trouble relaxing"],
+      ExcessiveWorry: cleanedForm["Excessive worry"],
+      FatigueorLowEnergy: cleanedForm["Fatigue or low energy"],
+      ChangeInAppetite: cleanedForm["Changes in appetite"],
+      SleepDisturbance: cleanedForm["Sleep disturbances"],
+      DifficultyConcentrating: cleanedForm["Difficulty concentrating"],
+      ThoughtsOfSelfHarmOrSuicide: cleanedForm["Thoughts of self-harm or suicide"],
+      DailyFunction: cleanedForm.dailyFunction,
+      SubstanceUse: cleanedForm.substanceUse,
+      SubstanceDetails: cleanedForm.substanceDetails,
+      LifeChanged: cleanedForm.lifeChanges,
+      ChangeDetails: cleanedForm.changeDetails,
+      Connectedness: cleanedForm.connectedness,
+      Safety: cleanedForm.safety,
+      SafetyDetails: cleanedForm.safetyDetails,
+      Hobbies: cleanedForm.hobbies,
+      CopingStrategies: cleanedForm.CopingStrategies,
+    }).then(async()=>{
+      const targetattributesResponse = await db.UsersAttributes.list([Query.equal("UserId",userID)])
+      if(targetattributesResponse.documents.length > 0){
 
-    // Get Gemini Score
-    const geminiScoreRaw = await getScore(JSON.stringify(cleanedForm));
-const geminiScore = Math.round(Number(geminiScoreRaw.totalScore)); // Ensure it's an integer
-setScore(geminiScore);
+        const targetDocument = targetattributesResponse.documents[0].$id
+        const oldScore = targetDocument.documents[0].Score
+        const timesFilled = targetattributesResponse.documents[0].NumberOfTimesFilled
+        const updateattributesResponse = await db.UsersAttributes.update(targetDocument,{
+          Score:oldScore,
+          newScore:geminiScore-oldScore >= 0?score-oldScore:0,
+          lastUpdatedDate:formattedDate,
+          NumberOfTimesFilled:timesFilled+1
+        })
+      }
+    
+    })
+  }
 
-    // Store in UsersAttributes (create or update)
-    const attributes = await db.UsersAttributes.list();
-    const userAttributes = attributes.documents.find((doc) => doc.UserId === userID);
+    // Get score from Gemini
+    
+    // Update or create user attributes
+    
 
-    if (!userAttributes) {
-      await db.UsersAttributes.create({
-        UserId: userID,
-        Score: geminiScore,
-        lastUpdatedDate: new Date().toISOString(),
-      });
-    } else {
-      await db.UsersAttributes.update(userAttributes.$id, {
-        Score: geminiScore,
-        lastUpdatedDate: new Date().toISOString(),
-      });
-    }
-
-    // Save date to localStorage
-    const now = new Date();
-const formattedDate = now.toLocaleDateString('en-GB'); // dd/mm/yyyy
-localStorage.setItem("lastAssessmentDate", formattedDate);
     toast.success("Form submitted successfully!");
-
-    // Redirect after success
     setTimeout(() => navigate("/dashboard"), 2000);
   } catch (error) {
     console.error("Submission error:", error);
     toast.error("Error submitting form. Please try again.");
   }
 };
+
 
 
 const handleChange = (e) => {

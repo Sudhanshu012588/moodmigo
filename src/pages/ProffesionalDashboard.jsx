@@ -30,18 +30,83 @@ const ProfessionalDashboard = () => {
 
   const today = new Date();
 const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
- 
 
-  // Fetch logged-in professional user info
-  useEffect(() => {
-    const fetchProfessionalData = async () => {
+
+useEffect(() => {
+  const runCleanup = async () => {
+    const formattedDate = new Date().toLocaleDateString("en-GB");
+
+    const mainClient = new Client()
+      .setEndpoint("https://fra.cloud.appwrite.io/v1")
+      .setProject("6826c7d8002c4477cb81");
+    const mainDB = new Databases(mainClient);
+
+    const sessionClient = new Client()
+      .setEndpoint("https://fra.cloud.appwrite.io/v1")
+      .setProject("6820683500148a9573af");
+    const sessionDB = new Databases(sessionClient);
+
+    const deletemeeting = async (id) => {
+      try {
+        await sessionDB.deleteDocument(
+          "6820add100102346d8b7",
+          "68280ac50027ed33d5d2",
+          id
+        );
+        const response = await sessionDB.listDocuments(
+          "6820add100102346d8b7",
+          "68280ac50027ed33d5d2",
+          [Query.equal('Mentorid', user.id)]
+        );
+        
+        setSessionsArray(response.documents.filter(doc => doc.confirmation === false));
+        setConfirmedAppointments(response.documents.filter(doc => doc.confirmation === true));
+        console.log("Deleted session:", id);
+      } catch (error) {
+        console.error("Error deleting session:", error);
+      }
+    };
+
+    const deleteSessionrequest = async (id) => {
+      try {
+        await mainDB.deleteDocument(
+          "6826d3a10039ef4b9444",
+          "68275039000cb886ff5c",
+          id
+        );
+        console.log("Deleted main record:", id);
+      } catch (error) {
+        console.error("Error deleting main record:", error);
+      }
+    };
+
+    meetings.forEach((meeting) => {
+      // Convert both dates to Date objects to compare
+      const meetingDate = new Date(meeting.date);
+      const today = new Date();
+
+      if (meetingDate < today) {
+        deletemeeting(meeting.$id);
+        deleteSessionrequest(meeting.$id);
+      }
+    });
+  };
+
+  if (meetings?.length > 0) {
+    runCleanup();
+  }
+}, [meetings]);
+
+// Fetch logged-in professional user info
+useEffect(() => {
+  const fetchProfessionalData = async () => {
       setIsLoading(true);
       
       try {
         const client = new Client()
-          .setEndpoint("https://fra.cloud.appwrite.io/v1")
-          .setProject("6826c7d8002c4477cb81");
-
+        .setEndpoint("https://fra.cloud.appwrite.io/v1")
+        .setProject("6826c7d8002c4477cb81");
+        
         const account = new Account(client);
         const tempUser = await account.get('current');
 
@@ -64,9 +129,9 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
     const fetchSessionRequests = async () => {
       try {
         const client = new Client()
-          .setEndpoint("https://fra.cloud.appwrite.io/v1")
-          .setProject("6820683500148a9573af");
-
+        .setEndpoint("https://fra.cloud.appwrite.io/v1")
+        .setProject("6820683500148a9573af");
+        
         const databases = new Databases(client);
 
         const response = await databases.listDocuments(
@@ -74,25 +139,25 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
           "68280ac50027ed33d5d2",
           [Query.equal('Mentorid', user.id)]
         );
-
-         setSessionsArray(response.documents.filter(doc => doc.confirmation === false));
-         setConfirmedAppointments(response.documents.filter(doc => doc.confirmation === true));
-        } catch (error) {
+        
+        setSessionsArray(response.documents.filter(doc => doc.confirmation === false));
+        setConfirmedAppointments(response.documents.filter(doc => doc.confirmation === true));
+      } catch (error) {
           toast.error("Server error fetching sessions");
         }
       };
-
-
+      
+      
       const fetchMeetings = async () => {
-      const client = new Client()
+        const client = new Client()
         .setEndpoint("https://fra.cloud.appwrite.io/v1")
         .setProject("6826c7d8002c4477cb81");
 
-      const databases = new Databases(client);
-
-      try {
-        const newsessions = await databases.listDocuments(
-          "6826d3a10039ef4b9444",
+        const databases = new Databases(client);
+        
+        try {
+          const newsessions = await databases.listDocuments(
+            "6826d3a10039ef4b9444",
           "68275039000cb886ff5c",
           [Query.equal("Mentorid", user.id)]
         );
@@ -102,18 +167,18 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
         console.error("Error fetching meetings:", error);
       }
     };
-      
+    
       fetchSessionRequests();
       fetchMeetings();
       
-  }, [user]);
-
-
-
-  // Confirm a session and create appointment
-  const handleConfirm = async (sessionId) => {
-    try {
-      const client = new Client()
+    }, [user]);
+    
+    
+    
+    // Confirm a session and create appointment
+    const handleConfirm = async (sessionId) => {
+      try {
+        const client = new Client()
         .setEndpoint("https://fra.cloud.appwrite.io/v1")
         .setProject("6820683500148a9573af");
 
@@ -130,14 +195,14 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
 
       // Also create appointment in professional project
       const proClient = new Client()
-        .setEndpoint("https://fra.cloud.appwrite.io/v1")
-        .setProject("6826c7d8002c4477cb81");
-
+      .setEndpoint("https://fra.cloud.appwrite.io/v1")
+      .setProject("6826c7d8002c4477cb81");
+      
       const profDatabases = new Databases(proClient);
-
+      
       const session = sessionArray.find(s => s.$id === sessionId);
-        const roomName = `${sessionId}`;
-    const newmeetingUrl = `https://meet.jit.si/${roomName}`;
+      const roomName = `${sessionId}`;
+      const newmeetingUrl = `https://meet.jit.si/${roomName}`;
       if (session) {
         await profDatabases.createDocument(
           "6826d3a10039ef4b9444",
@@ -153,20 +218,20 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
         );
         toast.success("Appointment created!");
       }
-
+      
       // Update local state: move session from unconfirmed to confirmed
       setSessionsArray(prev => prev.filter(s => s.$id !== sessionId));
-
+      
       if (session) {
         setConfirmedAppointments(prev => [...prev, { ...session, confirmation: true }]);
       }
-
+      
     } catch (error) {
       toast.error("Failed to confirm session");
       console.error(error);
     }
   };
-
+  
   // Show DatePicker for rescheduling
   const handleShowReschedule = (id, currentDate) => {
     setRescheduleId(id);
@@ -179,18 +244,18 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
       date = new Date(date);
     }
     setRescheduleDate(date);
-
+    
     if (!rescheduleId) return;
-
+    
     const dateStr = date.toLocaleDateString();
     const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
+    
     const client = new Client()
-      .setEndpoint("https://fra.cloud.appwrite.io/v1")
-      .setProject("6820683500148a9573af");
-
+    .setEndpoint("https://fra.cloud.appwrite.io/v1")
+    .setProject("6820683500148a9573af");
+    
     const databases = new Databases(client);
-
+    
     try {
       await databases.updateDocument(
         "6820add100102346d8b7",
@@ -203,12 +268,12 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
       );
 
       toast.success("Rescheduled successfully");
-
+      
       // Update local state with new date/time
       setSessionsArray(prev =>
         prev.map(s => s.$id === rescheduleId ? { ...s, date: dateStr, time: timeStr } : s)
       );
-
+      
       setRescheduleId(null); // close datepicker
     } catch (error) {
       console.error("Error updating document:", error);
@@ -220,26 +285,26 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
     if (!window.confirm("Are you sure you want to delete this session?")) {
       return; // User cancelled deletion
     }
-
+    
     try {
       const client = new Client()
-        .setEndpoint("https://fra.cloud.appwrite.io/v1")
-        .setProject("6820683500148a9573af"); // Use the correct project ID
-
+      .setEndpoint("https://fra.cloud.appwrite.io/v1")
+      .setProject("6820683500148a9573af"); // Use the correct project ID
+      
       const databases = new Databases(client);
-
+      
       await databases.deleteDocument(
         "6820add100102346d8b7",   // databaseId
         "68280ac50027ed33d5d2",  // collectionId
         documentId               // the $id of the document to delete
       );
-
+      
       toast.success("Session deleted successfully!");
-
+      
       // Remove the deleted session from state to update UI
       setSessionsArray(prev => prev.filter(s => s.$id !== documentId));
       setConfirmedAppointments(prev => prev.filter(c => c.$id !== documentId));
-
+      
     } catch (error) {
       console.error("Failed to delete document:", error);
       toast.error("Failed to delete the session.");
@@ -251,9 +316,10 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
     // const meetingUrl = `https://meet.jit.si/${roomName}`;
     window.open(id, "_blank");
   };
-
+  
   if (isLoading) return <MoodMigoLoading />;
 
+  
   return (
     <>
       <Navbar />

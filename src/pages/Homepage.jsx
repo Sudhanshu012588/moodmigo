@@ -33,7 +33,7 @@ function Homepage() {
 
         <ServicesSection/>
         </div>
-        <PremiumPage/>
+        {/* <PremiumPage/> */}
 
         <div id='about'>
         <AboutPage/></div>
