@@ -81,6 +81,7 @@ const getEmojiForMood = (moodLabel) => {
 
         // Fetch professionals linked to the user
         try {
+          console.log(user.id)
           const client = new Client()
             .setEndpoint("https://fra.cloud.appwrite.io/v1")
             .setProject("6826c7d8002c4477cb81");
@@ -94,9 +95,10 @@ const getEmojiForMood = (moodLabel) => {
           
           
           // console.log(response)
-
+          
           if (response.documents.length > 0) {
             setProfessionals(response.documents);
+            // console.log("Proff",response.documents)
 
             // Example: extract URL field if exists (replace 'urlFieldName' with actual field)
             // const firstUrl = response.documents[0]?.meetingurl || '';

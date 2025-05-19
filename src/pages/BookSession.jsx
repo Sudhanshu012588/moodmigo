@@ -113,7 +113,7 @@ const MentorCard = ({ mentor, onBookSession }) => {
 const MentorBooking = () => {
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const user = useStore((state) => state.id);
+  const currentuser = useStore((state) => state.User.id);
 
   useEffect(() => {
     const fetchMentors = async () => {
@@ -188,7 +188,7 @@ const fixSession = async (bookingObj) => {
       ID.unique(),
       {
         Mentorid: bookingObj.MentorId,
-        Clientid: bookingObj.ClientId,
+        Clientid: currentuser,
         username: username,
         date: bookingObj.date,
         time: bookingObj.time
