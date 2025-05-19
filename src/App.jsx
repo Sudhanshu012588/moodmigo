@@ -13,6 +13,7 @@ import Signup from "./pages/Signup";
 import BlogPage from "./pages/BlogPage";
 import MentorBooking from "./pages/BookSession"
 import MoodMigoQuestionnaire from "./pages/Questions";
+import JournalEntry from "./pages/JournalEntry";
 const App = () => {
   const type = useStore((state)=>state.type)
 
@@ -46,6 +47,7 @@ const App = () => {
             <Route path="/chat" element={<Manas />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/questionnaire" element={<MoodMigoQuestionnaire />} />
+            <Route path="/journal" element={<JournalEntry/>}/>
           </Routes>
       </BrowserRouter>
           </>

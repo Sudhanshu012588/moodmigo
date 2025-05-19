@@ -12,11 +12,9 @@ import db from '../appwrite/databases';
 import CircularProgress from '../components/ProgressTracker';
 import { Query, Client, Databases } from 'appwrite';
 import { toast } from 'react-toastify';
+import { useMemo } from "react";
 
-const journalEntries = [
-  { id: '1', title: 'Morning Reflection', date: '2 days ago', excerpt: "Today I woke up feeling more energetic..." },
-  { id: '2', title: 'Weekly Progress', date: '5 days ago', excerpt: "This week has been challenging..." },
-];
+
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -34,7 +32,23 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
   const [numberOfBlogs, setNumberOfBlogs] = useState(0);
   const [url,setUrl]=useState("")
   const [professionals, setProfessionals] = useState([]);
+  const [journalEntries,setjournalEntries]=useState([])
   // Appwrite client and database instances
+
+
+  const moods = [
+  { emoji: "😄", label: "Happy" },
+  { emoji: "😐", label: "Neutral" },
+  { emoji: "😔", label: "Sad" },
+  { emoji: "😠", label: "Angry" },
+  { emoji: "😰", label: "Anxious" },
+];
+
+const getEmojiForMood = (moodLabel) => {
+  const found = moods.find(m => m.label.toLowerCase() === moodLabel.toLowerCase());
+  return found ? found.emoji : "❓";
+};
+
   const newClient = new Client()
     .setEndpoint("https://fra.cloud.appwrite.io/v1")
     .setProject("6826c7d8002c4477cb81");
@@ -71,13 +85,15 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
             .setEndpoint("https://fra.cloud.appwrite.io/v1")
             .setProject("6826c7d8002c4477cb81");
           const database = new Databases(client);
-
+          // console.log(user.id)
           const response = await database.listDocuments(
             "6826d3a10039ef4b9444",
             "68275039000cb886ff5c",
             [Query.equal("ClientId", tempUser.$id)]
           );
-          console.log(response)
+          
+          
+          // console.log(response)
 
           if (response.documents.length > 0) {
             setProfessionals(response.documents);
@@ -91,7 +107,7 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
             setUrl('');
           }
         } catch (error) {
-          toast.error("Can't fetch any professionals");
+          toast.info("No appointment with professionals");
           // console.error(error);
         }
 
@@ -113,7 +129,19 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
       }
     };
 
+
+    const getJournals = async()=>{
+      const client = new Client()
+      client.setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6820683500148a9573af")
+      const database = new Databases(client)
+      const journalResponse  = await database.listDocuments("6820add100102346d8b7","682ab3ed000b1c6f984c")
+          if(journalResponse.documents.length > 0){
+            setjournalEntries(journalResponse.documents)
+            console.log(journalEntries)
+          }
+    }
     fetchData();
+    getJournals()
   }, [setUser, setScore, navigate]);
 
   // Debug log url state
@@ -123,215 +151,212 @@ const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFul
 
   return (
     <>
-      <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white p-4 sm:p-6 lg:p-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Welcome Section */}
+  <Navbar />
+  <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white p-6 sm:p-8 lg:p-12">
+    <div className="max-w-5xl mx-auto space-y-12">
+      {/* Welcome Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center"
+      >
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-blue-700 to-purple-600 text-transparent bg-clip-text">
+          Welcome back,{' '}
+          <span className="font-extrabold bg-gradient-to-r from-blue-700 to-purple-600 text-transparent bg-clip-text">
+            {user?.name || 'User'}
+          </span>
+          !
+        </h1>
+        <p className="mt-2 text-gray-700 text-base sm:text-lg max-w-xl mx-auto">
+          Your personalized mental wellness hub. Let's continue your mental wellness journey.
+        </p>
+      </motion.div>
+
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.35, duration: 0.6 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-8"
+      >
+        {[
+          {
+            onClick: () => navigate('/chat'),
+            label: 'MANARAH',
+            description: 'Your mental health companion.',
+            icon: <Users className="w-7 h-7 text-purple-600" />,
+            ariaLabel: 'Go to MANARAH chat',
+          },
+          {
+            onClick: () => navigate('/questionnaire'),
+            label: 'Fill The Questionnaire',
+            description: 'Click here to fill our questionnaire',
+            icon: <Calendar className="w-7 h-7 text-blue-600" />,
+            ariaLabel: 'Fill the questionnaire',
+          },
+          {
+            onClick: () => navigate('/blog'),
+            label: `${numberOfBlogs} Blogs`,
+            description: 'Community Posts',
+            icon: <MessageCircle className="w-7 h-7 text-yellow-500" />,
+            ariaLabel: 'View Blogs',
+          },
+        ].map(({ onClick, label, description, icon, ariaLabel }) => (
+          <button
+            key={label}
+            onClick={onClick}
+            aria-label={ariaLabel}
+            className="bg-white/90 backdrop-blur-md border border-gray-300 shadow-md hover:shadow-xl transition-shadow duration-300 hover:scale-[1.04] rounded-xl p-7 flex flex-col justify-between focus:outline-none focus:ring-4 focus:ring-blue-300"
+          >
+            <div className="space-y-3">
+              <div className="flex items-center gap-4">{icon}<h2 className="text-gray-900 font-semibold text-xl">{label}</h2></div>
+              <p className="text-gray-600 text-sm sm:text-base">{description}</p>
+            </div>
+          </button>
+        ))}
+      </motion.div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+        {/* Left Sidebar */}
+        <div className="lg:col-span-1 space-y-10">
+          {numberoftimes > 1 ? (
+            <motion.div
+              initial={{ opacity: 0, x: -25 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+              className="space-y-8"
+            >
+              <div className="flex flex-col items-center bg-gradient-to-tr from-purple-100 to-blue-100 rounded-2xl p-8 shadow-lg">
+                <span className="text-sm font-medium px-5 py-2 rounded-full bg-gradient-to-r from-purple-300 to-blue-300 text-gray-900 inline-flex items-center shadow-md">
+                  Your Progress
+                </span>
+                <div className="mt-6">
+                  <CircularProgress score={score} />
+                </div>
+                <span className="mt-6 text-sm text-gray-700 px-4 py-2 rounded-full bg-gradient-to-r from-purple-200 to-blue-200 shadow-md inline-flex items-center">
+                  Last Updated on: {updateDate || 'N/A'}
+                </span>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-gradient-to-r from-purple-200 to-blue-200 text-gray-800 px-5 py-3 rounded-2xl text-sm font-semibold shadow-sm border border-purple-300">
+              <div className="flex items-center gap-3">
+                <span role="img" aria-label="calendar" className="text-lg">
+                  📅
+                </span>
+                <p>Please complete the questionnaire again after 42 days to track your progress.</p>
+              </div>
+              <div className="bg-white/70 text-gray-700 border border-purple-300 px-4 py-2 rounded-full text-xs shadow-sm">
+                Last Updated: {updateDate || 'N/A'}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Content */}
+        <div className="lg:col-span-3 space-y-12">
+          {/* Upcoming Sessions */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center"
+            transition={{ delay: 0.65, duration: 0.6 }}
+            className="bg-white/95 backdrop-blur-md rounded-2xl p-8 border border-gray-300 shadow-lg"
           >
-            <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text tracking-tight">
-              Welcome back,{' '}
-              <span className="font-extrabold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text">
-                {user?.name || 'User'}
-              </span>
-              !
-            </h1>
-            <p className="text-gray-600 text-sm sm:text-base mt-1">Your personalized mental wellness hub.</p>
-            <p className="text-gray-600 text-sm sm:text-base mt-2">Let's continue your mental wellness journey</p>
-          </motion.div>
-
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            <button
-              onClick={() => navigate('/chat')}
-              className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] rounded-xl p-6 flex flex-col justify-between"
-              aria-label="Go to MANARAH chat"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <Users className="w-6 h-6 text-purple-500" />
-                  <h2 className="text-gray-900 font-semibold text-lg">MANARAH</h2>
-                </div>
-                <p className="text-gray-500 text-sm">Your mental health companion.</p>
+            <h3 className="text-gray-900 font-extrabold mb-6 text-2xl text-center">
+              Upcoming Sessions
+            </h3>
+            {professionals.length === 0 ? (
+              <p className="text-gray-500 text-center">No upcoming sessions.</p>
+            ) : (
+              <div className="space-y-6">
+                {professionals.map((session) => (
+                  <div
+                    key={session.$id}
+                    className="bg-gray-50 p-6 rounded-xl border border-gray-200 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow duration-300"
+                  >
+                    <div className="flex items-center gap-5">
+                      <Headphones className="w-7 h-7 text-purple-600" />
+                      <div>
+                        <p className="text-gray-900 font-semibold text-lg">{session.name}</p>
+                        <p className="text-gray-600 text-sm">{session.date}</p>
+                        <p className="text-gray-600 text-sm">{session.time}</p>
+                      </div>
+                    </div>
+                    {session.date === formattedDate && (
+                      <button
+                        onClick={() => window.open(session.meetingurl, '_blank')}
+                        className="text-white border border-green-600 bg-green-600 hover:bg-green-700 px-6 py-2 rounded-xl text-sm font-semibold transition-colors shadow-md"
+                      >
+                        Join
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
-            </button>
-
-            <button
-              onClick={() => navigate('/questionnaire')}
-              className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] rounded-xl p-6 flex flex-col justify-between"
-              aria-label="Fill the questionnaire"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-6 h-6 text-blue-500" />
-                  <h2 className="text-gray-900 font-semibold text-lg">Fill The Questionnaire</h2>
-                </div>
-                <p className="text-gray-500 text-sm">Click here to fill our questionnaire</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => navigate('/blog')}
-              className="bg-white/90 backdrop-blur-md border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] rounded-xl p-6 flex flex-col justify-between"
-              aria-label="View Blogs"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <MessageCircle className="w-6 h-6 text-yellow-500" />
-                  <h2 className="text-gray-900 font-semibold text-lg">{numberOfBlogs} Blogs</h2>
-                </div>
-                <p className="text-gray-500 text-sm">⁠Community Posts</p>
-              </div>
-            </button>
-          </motion.div>
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Left Sidebar */}
-            <div className="lg:col-span-1 space-y-8">
-              {numberoftimes>1?<motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-                className="space-y-6"
+            )}
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => navigate('/sessions')}
+                className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-7 py-3 rounded-xl shadow-lg hover:shadow-xl transition-transform duration-300 hover:scale-105 text-sm font-semibold"
               >
-                <div className="flex flex-col items-center">
-                  <div className="flex justify-center mb-2">
-                    <span className="bg-gradient-to-r from-purple-100 to-blue-100 text-gray-900 border-0 shadow-sm shadow-purple-500/20 px-4 py-2 rounded-full text-sm inline-flex items-center">
-                      Your Progress
+                Request New Session
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Journal Entries */}
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.75, duration: 0.6 }}
+            className="bg-white/95 backdrop-blur-md rounded-2xl p-8 border border-gray-300 shadow-lg max-w-3xl mx-auto"
+          >
+            <h3 className="text-gray-900 font-extrabold mb-8 text-2xl text-center">
+              Recent Journal Entries
+            </h3>
+
+            {journalEntries.length === 0 ? (
+              <p className="text-gray-500 text-center text-base">No entries yet.</p>
+            ) : (
+              journalEntries.map((entry) => (
+                <div
+                  key={entry.$id}
+                  className="flex flex-col bg-gray-50 p-6 rounded-xl border border-gray-200 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+                >
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="text-3xl">{getEmojiForMood(entry.Mood)}</span>
+                    <h4 className="text-gray-900 font-semibold text-xl">{entry.Mood}</h4>
+                    <span className="ml-auto text-gray-400 text-xs italic select-none">
+                      {new Date(entry.$createdAt).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
                     </span>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <CircularProgress score={score} />
-                  </div>
-                  <div className="flex justify-center mt-2">
-                    <span className="bg-gradient-to-r from-purple-100 to-blue-100 text-gray-900 border-0 shadow-sm shadow-purple-500/20 px-4 py-2 rounded-full text-sm inline-flex items-center">
-                      ⁠Last Updated on: {updateDate || 'N/A'}
-                    </span>
-                  </div>
+                  <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">{entry.Body}</p>
                 </div>
-              </motion.div>:<div className="flex flex-col md:flex-row items-center justify-between gap-2 bg-gradient-to-r from-purple-200 to-blue-200 text-gray-800 px-4 py-2 rounded-xl text-sm font-medium shadow-sm border border-purple-300">
-  <div className="flex items-center gap-2">
-    <span role="img" aria-label="calendar">📅</span>
-    <span>Please complete the questionnaire again after 42 days to track your progress.</span>
-  </div>
-  <div className="bg-white/60 text-gray-700 border border-purple-300 px-3 py-1 rounded-full text-xs shadow-sm">
-    Last Updated: {updateDate || 'N/A'}
-  </div>
+              ))
+            )}
+            <div className="flex gap-5 mt-6">
+  
+  <button
+    onClick={() => navigate('/journal')}
+    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl shadow-lg hover:shadow-xl transition-transform duration-300 hover:scale-105 text-base font-semibold"
+  >
+    New Journal Entry
+  </button>
 </div>
 
-
-
-} 
-
-              {/* <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.7, duration: 0.5 }}
-              >
-                <div className="bg-gradient-to-br from-purple-100/90 to-white/90 text-gray-900 border border-gray-200 shadow-md rounded-xl p-6 space-y-4">
-                  <h2 className="text-lg font-semibold">Upgrade to Premium</h2>
-                  <p className="text-gray-500 text-sm">
-                    Get unlimited access to all features and premium content.
-                  </p>
-                  <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-md mt-4 transition-colors">
-                    Upgrade Now
-                  </button>
-                </div>
-              </motion.div> */}
-            </div>
-
-            {/* Right Content */}
-            <div className="lg:col-span-3 space-y-8">
-              {/* Upcoming Sessions */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-              >
-                <div className="bg-white/90 backdrop-blur-md rounded-xl p-6 border border-gray-200 shadow-md">
-                  <h3 className="text-gray-900 font-bold mb-4 text-lg">Upcoming Sessions</h3>
-                  {professionals.length === 0 && (
-                    <p className="text-gray-500 text-sm">No upcoming sessions.</p>
-                  )}
-                  <div className="space-y-4">
-                    {professionals.map((session) => (
-                      <div
-                        key={session.$id}
-                        className="bg-gray-50 p-5 rounded-lg border border-gray-200 flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-4">
-                          <Headphones className="w-6 h-6 text-purple-500" />
-                          <div>
-                            <p className="text-gray-900 font-medium text-base">{session.name}</p>
-                            <p className="text-gray-500 text-sm">
-                              {session.date}
-                            </p>
-                            <p className="text-gray-500 text-sm">
-                              {session.time}
-                            </p>
-                          </div>
-                        </div>
-                        {session.date === formattedDate ? <button
-  className={`text-white border px-5 py-2 rounded-md text-sm transition-colors 
-    
-       border-green-500 bg-green-500/90 hover:bg-green-600`
-      
-  }
-  onClick={() => window.open(session.meetingurl, '_blank')}
->
-  join
-</button>:<></>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className='py-2'>
-
-                  <button
-  onClick={() => navigate('/sessions')}
-  className="bg-gradient-to-r  from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 text-sm font-semibold"
->
-  Request New Session
-</button>
-  </div>
-
-              </motion.div>
-
-              {/* Journal Entries */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.5 }}
-              >
-                <div className="bg-white/90 backdrop-blur-md rounded-xl p-6 border border-gray-200 shadow-md">
-                  <h3 className="text-gray-900 font-bold mb-4 text-lg">Recent Journal Entries</h3>
-                  {journalEntries.map(entry => (
-                    <div
-                      key={entry.id}
-                      className="bg-gray-50 p-4 rounded-md border border-gray-200 mb-4"
-                    >
-                      <h4 className="text-gray-800 font-semibold text-md">{entry.title}</h4>
-                      <p className="text-gray-500 text-xs mb-2">{entry.date}</p>
-                      <p className="text-gray-600 text-sm">{entry.excerpt}</p>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </>
+    </div>
+  </div>
+</>
+
   );
 };
 

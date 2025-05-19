@@ -80,25 +80,73 @@ const MoodMigoQuestionnaire = () => {
  const handleSubmit = async (e) => {
   console.log(typeof(userID))
   e.preventDefault();
-  setIsSubmitted(true);
+  
+  // STEP 1: Validate all fields are filled
+  const requiredFields = [
+    "Full Name",
+    "Date of Birth",
+    "Gender",
+    "Date of Assessment",
+    "Contact Information",
+    "Emergency Contact",
+    "Occupation / School",
+    "Feeling down, depressed, or hopeless",
+    "Little interest or pleasure in doing things",
+    "Feeling nervous, anxious, or on edge",
+    "Trouble relaxing",
+    "Excessive worry",
+    "Fatigue or low energy",
+    "Changes in appetite",
+    "Sleep disturbances",
+    "Difficulty concentrating",
+    "Thoughts of self-harm or suicide",
+    "dailyFunction",
+    "substanceUse",
+    "substanceDetails",
+    "lifeChanges",
+    "changeDetails",
+    "connectedness",
+    "safety",
+    "safetyDetails",
+    "hobbies",
+    "diagnosed",
+    "treatment",
+    "treatmentType",
+    "provider",
+    "hospitalized",
+    "hospitalReason",
+  ];
 
-  try {
-    const truncate = (str, maxLen = 25) =>
-      typeof str === "string" ? (str.length > maxLen ? str.slice(0, maxLen) : str) : "";
+  const emptyField = requiredFields.find(
+    (field) => !form[field] || (typeof form[field] === "string" && form[field].trim() === "")
+  );
 
-    const copingStrategies = Array.isArray(form.copingStrategies) ? form.copingStrategies : [];
+  if (emptyField) {
+    toast.error(`Please fill all fields before submitting. Missing: "${emptyField}"`);
+    setIsSubmitted(flase);
+    return;
+  }
 
-    const cleanedForm = {
-      ...form,
-      CopingStrategies: copingStrategies,
-      "Feeling down, depressed, or hopeless": truncate(form["Feeling down, depressed, or hopeless"]),
-      "Little interest or pleasure in doing things": truncate(form["Little interest or pleasure in doing things"]),
-      "Feeling nervous, anxious, or on edge": truncate(form["Feeling nervous, anxious, or on edge"]),
-      "Trouble relaxing": truncate(form["Trouble relaxing"]),
-      "Excessive worry": truncate(form["Excessive worry"]),
-      "Fatigue or low energy": truncate(form["Fatigue or low energy"]),
-      "Changes in appetite": truncate(form["Changes in appetite"]),
-      "Sleep disturbances": truncate(form["Sleep disturbances"]),
+  else{
+setIsSubmitted(true);
+    
+    try {
+      const truncate = (str, maxLen = 25) =>
+        typeof str === "string" ? (str.length > maxLen ? str.slice(0, maxLen) : str) : "";
+      
+      const copingStrategies = Array.isArray(form.copingStrategies) ? form.copingStrategies : [];
+      
+      const cleanedForm = {
+        ...form,
+        CopingStrategies: copingStrategies,
+        "Feeling down, depressed, or hopeless": truncate(form["Feeling down, depressed, or hopeless"]),
+        "Little interest or pleasure in doing things": truncate(form["Little interest or pleasure in doing things"]),
+        "Feeling nervous, anxious, or on edge": truncate(form["Feeling nervous, anxious, or on edge"]),
+        "Trouble relaxing": truncate(form["Trouble relaxing"]),
+        "Excessive worry": truncate(form["Excessive worry"]),
+        "Fatigue or low energy": truncate(form["Fatigue or low energy"]),
+        "Changes in appetite": truncate(form["Changes in appetite"]),
+        "Sleep disturbances": truncate(form["Sleep disturbances"]),
       "Difficulty concentrating": truncate(form["Difficulty concentrating"]),
       "Thoughts of self-harm or suicide": truncate(form["Thoughts of self-harm or suicide"]),
       dailyFunction: truncate(form.dailyFunction),
@@ -124,11 +172,11 @@ const MoodMigoQuestionnaire = () => {
     setScore(geminiScore);
     console.log("StoreScore",score)
     const today = new Date();
-const formattedDate = today.toLocaleDateString('en-GB');
+    const formattedDate = today.toLocaleDateString('en-GB');
     // Save to Questionnaire collection
     const getquestionare = await db.Questionare.list([Query.equal("userid",userID)])
     if(getquestionare.documents.length === 0){
-
+      
       const questionareResponse = await db.Questionare.create({
         userid:userID,
         FullName: cleanedForm["Full Name"],
@@ -148,14 +196,14 @@ const formattedDate = today.toLocaleDateString('en-GB');
         LittleInterestOrPleasureInThings: cleanedForm["Little interest or pleasure in doing things"],
         FeelingNervousAnxiousOrOnEdge: cleanedForm["Feeling nervous, anxious, or on edge"],
         TroubleRelaxing: cleanedForm["Trouble relaxing"],
-      ExcessiveWorry: cleanedForm["Excessive worry"],
-      FatigueorLowEnergy: cleanedForm["Fatigue or low energy"],
-      ChangeInAppetite: cleanedForm["Changes in appetite"],
-      SleepDisturbance: cleanedForm["Sleep disturbances"],
-      DifficultyConcentrating: cleanedForm["Difficulty concentrating"],
-      ThoughtsOfSelfHarmOrSuicide: cleanedForm["Thoughts of self-harm or suicide"],
-      DailyFunction: cleanedForm.dailyFunction,
-      SubstanceUse: cleanedForm.substanceUse,
+        ExcessiveWorry: cleanedForm["Excessive worry"],
+        FatigueorLowEnergy: cleanedForm["Fatigue or low energy"],
+        ChangeInAppetite: cleanedForm["Changes in appetite"],
+        SleepDisturbance: cleanedForm["Sleep disturbances"],
+        DifficultyConcentrating: cleanedForm["Difficulty concentrating"],
+        ThoughtsOfSelfHarmOrSuicide: cleanedForm["Thoughts of self-harm or suicide"],
+        DailyFunction: cleanedForm.dailyFunction,
+        SubstanceUse: cleanedForm.substanceUse,
       SubstanceDetails: cleanedForm.substanceDetails,
       LifeChanged: cleanedForm.lifeChanges,
       ChangeDetails: cleanedForm.changeDetails,
@@ -194,23 +242,23 @@ const formattedDate = today.toLocaleDateString('en-GB');
         LittleInterestOrPleasureInThings: cleanedForm["Little interest or pleasure in doing things"],
         FeelingNervousAnxiousOrOnEdge: cleanedForm["Feeling nervous, anxious, or on edge"],
         TroubleRelaxing: cleanedForm["Trouble relaxing"],
-      ExcessiveWorry: cleanedForm["Excessive worry"],
-      FatigueorLowEnergy: cleanedForm["Fatigue or low energy"],
-      ChangeInAppetite: cleanedForm["Changes in appetite"],
-      SleepDisturbance: cleanedForm["Sleep disturbances"],
-      DifficultyConcentrating: cleanedForm["Difficulty concentrating"],
-      ThoughtsOfSelfHarmOrSuicide: cleanedForm["Thoughts of self-harm or suicide"],
-      DailyFunction: cleanedForm.dailyFunction,
-      SubstanceUse: cleanedForm.substanceUse,
-      SubstanceDetails: cleanedForm.substanceDetails,
-      LifeChanged: cleanedForm.lifeChanges,
-      ChangeDetails: cleanedForm.changeDetails,
-      Connectedness: cleanedForm.connectedness,
-      Safety: cleanedForm.safety,
-      SafetyDetails: cleanedForm.safetyDetails,
-      Hobbies: cleanedForm.hobbies,
-      CopingStrategies: cleanedForm.CopingStrategies,
-    }).then(async()=>{
+        ExcessiveWorry: cleanedForm["Excessive worry"],
+        FatigueorLowEnergy: cleanedForm["Fatigue or low energy"],
+        ChangeInAppetite: cleanedForm["Changes in appetite"],
+        SleepDisturbance: cleanedForm["Sleep disturbances"],
+        DifficultyConcentrating: cleanedForm["Difficulty concentrating"],
+        ThoughtsOfSelfHarmOrSuicide: cleanedForm["Thoughts of self-harm or suicide"],
+        DailyFunction: cleanedForm.dailyFunction,
+        SubstanceUse: cleanedForm.substanceUse,
+        SubstanceDetails: cleanedForm.substanceDetails,
+        LifeChanged: cleanedForm.lifeChanges,
+        ChangeDetails: cleanedForm.changeDetails,
+        Connectedness: cleanedForm.connectedness,
+        Safety: cleanedForm.safety,
+        SafetyDetails: cleanedForm.safetyDetails,
+        Hobbies: cleanedForm.hobbies,
+        CopingStrategies: cleanedForm.CopingStrategies,
+      }).then(async()=>{
       const targetattributesResponse = await db.UsersAttributes.list([Query.equal("UserId",userID)])
       if(targetattributesResponse.documents.length > 0){
 
@@ -224,21 +272,22 @@ const formattedDate = today.toLocaleDateString('en-GB');
           NumberOfTimesFilled:timesFilled+1
         })
       }
-    
+      
     })
   }
-
-    // Get score from Gemini
-    
-    // Update or create user attributes
-    
-
-    toast.success("Form submitted successfully!");
-    setTimeout(() => navigate("/dashboard"), 2000);
-  } catch (error) {
-    console.error("Submission error:", error);
-    toast.error("Error submitting form. Please try again.");
-  }
+  
+  // Get score from Gemini
+  
+  // Update or create user attributes
+  
+  
+  toast.success("Form submitted successfully!");
+  setTimeout(() => navigate("/dashboard"), 2000);
+} catch (error) {
+  console.error("Submission error:", error);
+  toast.error("Error submitting form. Please try again.");
+}
+}
 };
 
 

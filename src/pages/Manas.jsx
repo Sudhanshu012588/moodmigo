@@ -47,89 +47,97 @@ const ManasChatbot = () => {
 
     return (
         <>
-        <Navbar />
-        <div className="flex flex-col h-screen">
-            <div className="bg-white/90 backdrop-blur-md border-b border-gray-200 p-4 flex items-center gap-4 shadow-sm">
-                <MessageCircle className="w-6 h-6 text-purple-500" />
-                <h1 className="text-xl font-semibold text-gray-900">Manarah Chatbot</h1>
-            </div>
+  <Navbar />
+  <div className="flex flex-col h-screen bg-gradient-to-b from-purple-50 to-white">
+    {/* Header */}
+    <div className="bg-white/95 backdrop-blur-md border-b border-gray-300 p-5 flex items-center gap-4 shadow-md sticky top-0 z-10">
+      <MessageCircle className="w-7 h-7 text-purple-600" />
+      <h1 className="text-2xl font-bold text-gray-900 select-none">
+        Manarah Chatbot
+      </h1>
+    </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                <AnimatePresence>
-                    {messages.map((message, index) => (
-                        <React.Fragment key={index}>
-                            {message.user && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="flex w-fit ml-auto max-w-[90%] sm:max-w-[70%] rounded-xl p-3 shadow-md bg-blue-100 text-blue-800"
-                                >
-                                    <p className="text-sm">{message.user}</p>
-                                </motion.div>
-                            )}
-                            {message.model && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="flex w-fit max-w-[90%] sm:max-w-[70%] rounded-xl p-3 shadow-md bg-purple-100 text-purple-800"
-                                >
-                                    <p className="text-sm">{message.model}</p>
-                                </motion.div>
-                            )}
-                        </React.Fragment>
-                    ))}
-                </AnimatePresence>
+    {/* Chat Messages */}
+    <div className="flex-1 overflow-y-auto p-6 space-y-5 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-50">
+      <AnimatePresence>
+        {messages.map((message, index) => (
+          <React.Fragment key={index}>
+            {message.user && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="flex w-fit ml-auto max-w-[90%] sm:max-w-[70%] rounded-2xl p-4 shadow-lg bg-blue-200 text-blue-900 text-lg leading-relaxed break-words"
+              >
+                <p>{message.user}</p>
+              </motion.div>
+            )}
+            {message.model && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="flex w-fit max-w-[90%] sm:max-w-[70%] rounded-2xl p-4 shadow-lg bg-purple-200 text-purple-900 text-lg leading-relaxed break-words"
+              >
+                <p>{message.model}</p>
+              </motion.div>
+            )}
+          </React.Fragment>
+        ))}
+      </AnimatePresence>
 
-                {isBotTyping && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex items-center gap-2 bg-purple-100 text-purple-800 rounded-xl p-3 max-w-[80%]"
-                    >
-                        <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
-                        <span className="text-sm">Typing...</span>
-                    </motion.div>
-                )}
-                <div ref={chatEndRef} />
-            </div>
+      {isBotTyping && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="flex items-center gap-3 bg-purple-200 text-purple-900 rounded-2xl p-3 max-w-[80%] shadow-lg"
+        >
+          <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+          <span className="text-base font-medium">Typing...</span>
+        </motion.div>
+      )}
+      <div ref={chatEndRef} />
+    </div>
 
-            <div className="bg-white/90 backdrop-blur-md border-t border-gray-200 p-4">
-                <div className="flex items-center gap-2">
-                    <input
-                        type="text"
-                        placeholder="Type your message..."
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSend();
-                            }
-                        }}
-                        className="flex-1 bg-gray-50 text-gray-900 border border-gray-300 rounded-md p-2 placeholder:text-gray-500 focus:ring-2 focus:ring-purple-500"
-                        ref={inputRef}
-                    />
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleSend}
-                        className="bg-purple-500 hover:bg-purple-600 text-white rounded-md p-2 shadow-md"
-                        disabled={isBotTyping}
-                    >
-                        <Send className="w-5 h-5" />
-                    </motion.button>
-                </div>
-                <p className="text-gray-500 text-xs mt-1">
-                   We are not storing any chat. Feel free to ask anything.
-                </p>
-            </div>
-        </div>
-                                    </>
+    {/* Input Area */}
+    <div className="bg-white/95 backdrop-blur-md border-t border-gray-300 p-6 sticky bottom-0 z-10 shadow-inner">
+      <div className="flex items-center gap-3 max-w-4xl mx-auto">
+        <input
+          type="text"
+          placeholder="Type your message..."
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+          className="flex-1 bg-gray-100 text-gray-900 border border-gray-300 rounded-2xl px-5 py-3 placeholder-gray-500 text-lg focus:outline-none focus:ring-2 focus:ring-purple-600 transition"
+          ref={inputRef}
+        />
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleSend}
+          className="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-lg flex items-center justify-center transition"
+          disabled={isBotTyping}
+          aria-label="Send message"
+        >
+          <Send className="w-6 h-6" />
+        </motion.button>
+      </div>
+      <p className="text-gray-500 text-sm mt-2 text-center select-none">
+        We are&nbsp;<strong>not</strong>&nbsp;storing any chat. Feel free to ask
+        anything.
+      </p>
+    </div>
+  </div>
+</>
+
     );
 };
 

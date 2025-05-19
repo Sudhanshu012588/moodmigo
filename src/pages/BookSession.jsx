@@ -9,7 +9,7 @@ import { useStore } from '../store/store';
 import Navbar from '../components/Navbar';
 import { account } from '../appwrite/config'; // assuming you've pre-configured Account instance here
 import { toast } from 'react-toastify';
-
+import { useNavigate } from 'react-router-dom';
 // Single Mentor Card component
 const MentorCard = ({ mentor, onBookSession }) => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -28,7 +28,7 @@ const MentorCard = ({ mentor, onBookSession }) => {
     : typeof mentor.specialties === 'string'
     ? mentor.specialties.split(',').map((s) => s.trim())
     : [];
-
+  const navigate = useNavigate()
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -201,7 +201,7 @@ const fixSession = async (bookingObj) => {
     toast.error("Something went wrong!");
   }
 };
-
+const navigate = useNavigate()
   return (
     <>
       <Navbar />
@@ -230,6 +230,13 @@ const fixSession = async (bookingObj) => {
           </AnimatePresence>
         )}
       </div>
+      <button
+    type="button" 
+    onClick={() => navigate('/dashboard')}
+    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8  ml-5 rounded-xl shadow-lg hover:shadow-xl transition-transform duration-300 hover:scale-105 text-base font-semibold"
+  >
+    Back
+  </button>
     </>
   );
 };

@@ -30,7 +30,7 @@ export default function Footer() {
           <ul className="space-y-1">
             <li><a href="#" className="hover:text-purple-700">Online Counseling</a></li>
             <li><a href="#" className="hover:text-purple-700">Journal</a></li>
-            <li><a href="#" className="hover:text-purple-700">Manas Chatbot</a></li>
+            <li><a href="#" className="hover:text-purple-700">MANARAH Chatbot</a></li>
             <li><a href="#" className="hover:text-purple-700">Community</a></li>
           </ul>
         </div>
@@ -38,12 +38,13 @@ export default function Footer() {
         {/* Contact */}
         <div>
           <h3 className="text-lg font-semibold mb-2">Contact</h3>
-          <p className="mb-1">support@MoodMigo.com</p>
-          <p className="mb-3">+1 (555) 123-4567</p>
+          <p className="mb-1">shriyajain1011@gmail.com
+
+</p>
+          <p className="mb-3"></p>
           <div className="flex space-x-4 text-xl text-purple-600">
-            <a href="#"><FaFacebookF /></a>
-            <a href="#"><FaTwitter /></a>
-            <a href="#"><FaInstagram /></a>
+            
+            <a href="https://www.instagram.com/moodmigo/"><FaInstagram /></a>
           </div>
         </div>
       </div>
