@@ -98,7 +98,8 @@ const getEmojiForMood = (moodLabel) => {
           
           if (response.documents.length > 0) {
             setProfessionals(response.documents);
-            // console.log("Proff",response.documents)
+            console.log("proff",professionals)
+            console.log("Proff",response.documents)
 
             // Example: extract URL field if exists (replace 'urlFieldName' with actual field)
             // const firstUrl = response.documents[0]?.meetingurl || '';
