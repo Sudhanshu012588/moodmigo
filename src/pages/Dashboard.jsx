@@ -89,7 +89,7 @@ const getEmojiForMood = (moodLabel) => {
           const response = await database.listDocuments(
             "6826d3a10039ef4b9444",
             "68275039000cb886ff5c",
-            [Query.equal("ClientId", tempUser.$id)]
+            [Query.equal("ClientId", user.id)]
           );
           
           
