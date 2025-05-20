@@ -193,7 +193,7 @@ const getEmojiForMood = (moodLabel) => {
           },
           {
             onClick: () => navigate('/questionnaire'),
-            label: 'Fill The Questionnaire',
+            label: 'Fill the Questionnaire',
             description: 'Click here to fill our questionnaire',
             icon: <Calendar className="w-7 h-7 text-blue-600" />,
             ariaLabel: 'Fill the questionnaire',
