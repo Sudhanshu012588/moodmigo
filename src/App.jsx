@@ -48,6 +48,7 @@ const App = () => {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/questionnaire" element={<MoodMigoQuestionnaire />} />
             <Route path="/journal" element={<JournalEntry/>}/>
+            <Route path="/signup" element={<Signup/>}/>
           </Routes>
       </BrowserRouter>
           </>
