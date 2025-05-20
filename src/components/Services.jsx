@@ -16,7 +16,7 @@ const services = [
       "Write and reflect on your thoughts with our digital journaling tool designed to track your mental wellness journey.",
     icon: "📔",
     link: "false",
-    premium: false,
+    premium: "Learn More",
     borderColor: "border-violet-400",
   },
   {
@@ -25,7 +25,7 @@ const services = [
       "Our multilingual AI chatbot provides support through text or voice chat, available for 3 hours daily with premium access.",
     icon: "🤖",
     link: "false",
-    premium: false,
+    premium: "Learn More",
     borderColor: "border-green-200",
   },
   {
@@ -34,7 +34,7 @@ const services = [
       "Join a supportive community where you can share experiences, discuss challenges, and connect with others on similar journeys.",
     icon: "👥",
     link: "false",
-    premium: false,
+    premium: "Learn More",
     borderColor: "border-violet-400",
   },
 ];
