@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const LoginToggle = ({ onChange }) => {
-  const [isClient, setIsClient] = useState(true);
-
+  const [isClient, setIsClient] = useState();
+  useEffect(()=>{
+    const user = localStorage.getItem('type')
+    if(user==='Client')setIsClient(true)
+      else setIsClient(false)
+  },[])
   const handleClientClick = () => {
     setIsClient(true);
     localStorage.setItem('type', 'Client'); // ✅ Save in localStorage

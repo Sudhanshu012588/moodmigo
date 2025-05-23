@@ -65,9 +65,17 @@ const Login = () => {
         navigate("/mentorsdashboard");
       }
     } catch (error) {
-      console.error("Login failed:", error);
-      toast.error("Login failed. Please check your credentials.");
-    }
+  console.error("Login failed:", error);
+  
+  const errorMessage = error?.response?.data?.message || error?.message || error.toString();
+
+  if (errorMessage.includes("Creation of a session is prohibited when a session is active")) {
+    toast.error("Already logged in on another device");
+  } else {
+    toast.error("Login failed. Please try again.");
+  }
+}
+
   };
 
   return (
