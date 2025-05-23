@@ -39,12 +39,12 @@ const Navbar = () => {
     }
   };
 
-  const type = useStore((state)=>state.type)
+  const type =localStorage.getItem('type')
   // Logout function
   const handleLogout = () => {
     // Remove token from localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('type')
+    // localStorage.removeItem('token');
+    // localStorage.removeItem('type')
     // Update Zustand state
     useStore.setState({ User: { isLoggedIn: false } });
     // Delete session from Appwrite
