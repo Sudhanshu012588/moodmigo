@@ -4,6 +4,9 @@ const LoginToggle = ({ onChange }) => {
   const [isClient, setIsClient] = useState();
   useEffect(()=>{
     const user = localStorage.getItem('type')
+    if(!user){
+      localStorage.setItem("type",'Client')
+    }
     if(user==='Client')setIsClient(true)
       else setIsClient(false)
   },[])
