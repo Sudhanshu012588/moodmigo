@@ -14,6 +14,8 @@ import BlogPage from "./pages/BlogPage";
 import MentorBooking from "./pages/BookSession"
 import MoodMigoQuestionnaire from "./pages/Questions";
 import JournalEntry from "./pages/JournalEntry";
+import PaymentPortal from "./pages/Premium.jsx"
+
 const App = () => {
   const type = useStore((state)=>state.type)
 
@@ -49,6 +51,7 @@ const App = () => {
             <Route path="/questionnaire" element={<MoodMigoQuestionnaire />} />
             <Route path="/journal" element={<JournalEntry/>}/>
             <Route path="/signup" element={<Signup/>}/>
+            <Route path="/premium" element={<PaymentPortal/>}/>
           </Routes>
       </BrowserRouter>
           </>

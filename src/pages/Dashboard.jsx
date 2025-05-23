@@ -242,6 +242,15 @@ const getEmojiForMood = (moodLabel) => {
                   Last Updated on: {updateDate || 'N/A'}
                 </span>
               </div>
+              <button
+            className="text-white border flex justify-center items-centers border-green-600 bg-green-600 hover:bg-green-700 px-6 py-2 rounded-xl text-sm font-semibold transition-colors shadow-md"
+            onClick={()=>{
+              if(user.isLoggedIn==true){navigate('/premium')}
+              // console.log(user.isLoggedIn)
+            }}
+          >
+            Upgrade to Premium
+          </button>
             </motion.div>
           ) : (
             <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-gradient-to-r from-purple-200 to-blue-200 text-gray-800 px-5 py-3 rounded-2xl text-sm font-semibold shadow-sm border border-purple-300">
@@ -256,6 +265,7 @@ const getEmojiForMood = (moodLabel) => {
               </div>
             </div>
           )}
+          
         </div>
 
         {/* Right Content */}

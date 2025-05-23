@@ -262,15 +262,17 @@ setIsSubmitted(true);
       const targetattributesResponse = await db.UsersAttributes.list([Query.equal("UserId",userID)])
       if(targetattributesResponse.documents.length > 0){
 
+
         const targetDocument = targetattributesResponse.documents[0].$id
-        const oldScore = targetDocument.documents[0].Score
+        const oldScore = targetattributesResponse.documents[0].Score
         const timesFilled = targetattributesResponse.documents[0].NumberOfTimesFilled
         const updateattributesResponse = await db.UsersAttributes.update(targetDocument,{
-          Score:oldScore,
-          newScore:geminiScore-oldScore >= 0?score-oldScore:0,
+          Score:parseInt(oldScore),
+          newScore:parsInt(geminiScore-oldScore>= 0?score-oldScore:0),
           lastUpdatedDate:formattedDate,
-          NumberOfTimesFilled:timesFilled+1
+          NumberOfTimesFilled:parseInt(timesFilled)+1
         })
+        console.log(updateattributesResponse.documents)
       }
       
     })
@@ -316,6 +318,29 @@ const handleChange = (e) => {
 };
   
 
+// const newfunction = async()=>{
+
+//   const targetattributesResponse = await db.UsersAttributes.list([Query.equal("UserId",userID)])
+//   if(targetattributesResponse.documents.length > 0){
+    
+    
+//     const targetDocument = targetattributesResponse.documents[0].$id
+//     const oldScore = targetattributesResponse.documents[0].Score
+//     const timesFilled = targetattributesResponse.documents[0].NumberOfTimesFilled
+//     const updateattributesResponse = await db.UsersAttributes.update(targetDocument,{
+//       Score:oldScore,
+//       // newScore:geminiScore-oldScore >= 0?score-oldScore:0,
+//       // lastUpdatedDate:formattedDate,
+//       NumberOfTimesFilled:timesFilled+1
+//     })
+//     // console.log("document id",targetDocument)
+//     console.log("Updated Document",updateattributesResponse)
+//   }
+// // }
+// useEffect(() => {
+
+//   console.log(userID)
+// }, [])
   return (
     <>
 

@@ -17,6 +17,7 @@ const CircularProgress = ({ score = 0, size = 120, strokeWidth = 10 }) => {
   const offset = circumference - (percentage / 100) * circumference;
 
   return (
+    <>
     <div
       className="relative flex flex-col items-center justify-center"
       style={{ width: size, height: size }}
@@ -52,7 +53,11 @@ const CircularProgress = ({ score = 0, size = 120, strokeWidth = 10 }) => {
       <div className="absolute text-center text-purple-700 font-semibold text-lg">
         {percentage}%
       </div>
+      
     </div>
+    
+
+    </>
   );
 };
 
