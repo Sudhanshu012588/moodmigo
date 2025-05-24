@@ -267,7 +267,7 @@ setIsSubmitted(true);
         const oldScore = targetattributesResponse.documents[0].Score
         const timesFilled = targetattributesResponse.documents[0].NumberOfTimesFilled
           const newScoreValue = Math.max(0, Math.min(50, parseInt(geminiScore - oldScore >= 0 ? score - oldScore : 0)));
-
+          
         const updateattributesResponse = await db.UsersAttributes.update(targetDocument,{
           Score:parseInt(oldScore),
           newScore: newScoreValue,

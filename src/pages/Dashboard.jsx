@@ -72,7 +72,7 @@ const getEmojiForMood = (moodLabel) => {
           Query.equal('UserId', tempUser.$id),
         ]);
         if (scoreResponse.documents.length > 0) {
-          setScore(scoreResponse.documents[0].Score);
+          setScore(scoreResponse.documents[0].newScore);
           setNumberofTimes(scoreResponse.documents[0].NumberOfTimesFilled)
           setUpdateDate(scoreResponse.documents[0].lastUpdatedDate);
         } else {
