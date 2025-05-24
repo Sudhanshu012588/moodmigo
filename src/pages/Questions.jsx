@@ -268,7 +268,7 @@ setIsSubmitted(true);
         const timesFilled = targetattributesResponse.documents[0].NumberOfTimesFilled
         const updateattributesResponse = await db.UsersAttributes.update(targetDocument,{
           Score:parseInt(oldScore),
-          newScore:parsInt(geminiScore-oldScore>= 0?score-oldScore:0),
+          newScore: parseInt(geminiScore - oldScore >= 0 ? score - oldScore : 0),
           lastUpdatedDate:formattedDate,
           NumberOfTimesFilled:parseInt(timesFilled)+1
         })
