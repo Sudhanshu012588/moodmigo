@@ -105,6 +105,8 @@ const Navbar = () => {
           });
 
           // Navigate to home
+                    localStorage.removeItem("token")
+
           navigate('/');})
       }catch(error){
         toast.error("logout failed",error)
