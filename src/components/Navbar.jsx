@@ -63,7 +63,7 @@ const Navbar = () => {
             draggable: true,
             progress: undefined,
           });
-
+          localStorage.removeItem("token")
           // Navigate to home
           navigate('/');
         })

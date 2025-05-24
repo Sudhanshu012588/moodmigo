@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import { Account, Client, Databases, ID } from 'appwrite';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { use } from 'react';
 
 const ProfessionalDashboard = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const ProfessionalDashboard = () => {
   const [rescheduleDate, setRescheduleDate] = useState(new Date());
   const [meetings,setMeetings]=useState([])
   const [link,setLink]=useState("")
-
+  const [clientname, setClientname] = useState('')
 
   const today = new Date();
 const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
@@ -140,7 +141,7 @@ useEffect(() => {
           [Query.equal('Mentorid', user.id)]
         );
         
-        setSessionsArray(response.documents.filter(doc => doc.confirmation === false));
+        setSessionsArray(response.documents.filter(doc => doc.Verified === true));
         setConfirmedAppointments(response.documents.filter(doc => doc.confirmation === true));
       } catch (error) {
           toast.error("Server error fetching sessions");
@@ -211,12 +212,19 @@ useEffect(() => {
           {
             Mentorid: session.Mentorid,
             ClientId: session.Clientid,
-            date: session.date,
-            time: session.time,
-            meetingurl: newmeetingUrl
+            date: session.prefferedDateTime,
+            meetingurl: newmeetingUrl,
+            username:session.username
           }
         );
+
+        await databases.deleteDocument(
+        "6820add100102346d8b7",
+        "68280ac50027ed33d5d2",
+        sessionId
+      );
         toast.success("Appointment created!");
+
       }
       
       // Update local state: move session from unconfirmed to confirmed
@@ -262,8 +270,7 @@ useEffect(() => {
         "68280ac50027ed33d5d2",
         rescheduleId,
         {
-          date: dateStr,
-          time: timeStr,
+          prefferedDateTime: `${dateStr}`
         }
       );
 
@@ -311,6 +318,47 @@ useEffect(() => {
     }
   };
 
+  useEffect(() => {
+   const getAppointments = async () => {
+      const client = new Client()
+        .setEndpoint("https://fra.cloud.appwrite.io/v1")
+        .setProject("6826c7d8002c4477cb81");
+
+      const database = new Databases(client);
+
+      try {
+        const response = await database.listDocuments(
+          "6826d3a10039ef4b9444",
+          "68275039000cb886ff5c",
+          [Query.equal("Mentorid", user.id)]
+        );
+
+        const date = new Date();
+        const formattedDateTime = date.toLocaleString("en-US", {
+          month: "numeric",
+          day: "numeric",
+          year: "numeric",
+        }).replace(",", ""); // "5/24/2025 10:27 PM"
+        console.log(formattedDateTime)
+        const todaysAppointments = response.documents.filter((appointment) =>
+          appointment.date?.includes(formattedDateTime)
+        );
+          setConfirmedAppointments(todaysAppointments)
+        
+        if (todaysAppointments.length === 0) {
+          toast.info("No appointment today");
+        }
+
+      } catch (error) {
+        toast.error("Failed to fetch appointments");
+        console.error(error);
+      }
+    };
+
+    getAppointments()
+    console.log("Todays",meetings)
+  }, [])
+  
   const handleJoinMeeting = (id) => {
     // const roomName = `${ID.unique()}`;
     // const meetingUrl = `https://meet.jit.si/${roomName}`;
@@ -390,12 +438,11 @@ useEffect(() => {
             {sessionArray.length === 0 ? (
               <p className="text-gray-500">No session requests at the moment.</p>
             ) : (
-              sessionArray.map(({ $id, username, date, time,meetingUrl }) => (
+              sessionArray.map(({ $id, username, prefferedDateTime,meetingUrl }) => (
                 <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
                   <div>
                     <p><span className="font-semibold">Client:</span> {username}</p>
-                    <p><span className="font-semibold">Date:</span> {date}</p>
-                    <p><span className="font-semibold">Time:</span> {time}</p>
+                    <p><span className="font-semibold">Date:</span> {prefferedDateTime}</p>
                   </div>
                   <div className="flex items-center space-x-4">
                     <button
@@ -405,7 +452,7 @@ useEffect(() => {
                       Confirm
                     </button>
                     <button
-                      onClick={() => handleShowReschedule($id, date)}
+                      onClick={() => handleShowReschedule($id, prefferedDateTime)}
                       className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
                     >
                       Reschedule
@@ -445,17 +492,20 @@ useEffect(() => {
           {/* Confirmed Appointments */}
          <motion.section>
   <h2 className="text-xl font-semibold mb-4">Confirmed Appointments</h2>
-  {confirmedAppointments.length === 0 ? (
+  {meetings.length === 0 ? (
     <p className="text-gray-500">No confirmed appointments.</p>
   ) : (
-    meetings.map(({ $id, username, date, time, meetingurl }) => (
+    meetings.map(({ $id, username, date, meetingurl }) => (
       <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
         <div>
           <p><span className="font-semibold">Client:</span> {username}</p>
           <p><span className="font-semibold">Date:</span> {date}</p>
-          <p><span className="font-semibold">Time:</span> {time}</p>
         </div>
-        {date == formattedDate && (
+        {date == date.toLocaleString("en-US", {
+          month: "numeric",
+          day: "numeric",
+          year: "numeric",
+        }).replace(",", "") && (
           <button
             onClick={() => handleJoinMeeting(meetingurl)}
             className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"

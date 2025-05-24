@@ -1,19 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useStore } from '../store/store';
 import Navbar from '../components/Navbar';
-import { Client, Databases, ID } from 'appwrite';
+import { Client, Databases, ID,Query } from 'appwrite';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 function PaymentPortal() {
   const user = useStore((state) => state.User);
-
+  const mentor = useStore((state)=>state.mentorId)
+  const [MentorId,setMentorId] = useState('')
+  const setpaymentstate = useStore((state)=>state.setpaymentstate)
   const [form, setForm] = useState({
     id: user?.id || '',
     name: user?.name || '',
     email: user?.email || '',
     transactionId: '',
     transactionDateTime: '',
+    prefferedDateTime: ''
   });
+
+  const navigate = useNavigate()
+  useEffect(() => {
+    const getmentorid = async()=>{
+      const client = new Client();
+          client.setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6826c7d8002c4477cb81");
+      
+          const database = new Databases(client);
+          const res = await database.listDocuments(
+            "6826d3a10039ef4b9444",
+            "6826dd9700303a5efb90",
+            [Query.equal('username', mentor)]
+          );
+
+          setMentorId(res.documents[0].id)
+    }
+    getmentorid()
+  }, [])
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -31,17 +53,23 @@ function PaymentPortal() {
 
       await database.createDocument(
         '6820add100102346d8b7', // databaseId
-        '683016000031710dbd11', // collectionId
+        '68280ac50027ed33d5d2', // collectionId
         ID.unique(),
         {
-          id: form.id,
-          TransactionId: form.transactionId,
-          emailid: form.email,
-          transactiondateandtime: form.transactionDateTime,
+          username:user.name,
+          Clientid: form.id,
+          PaymentId: form.transactionId,
+          Mentorid:MentorId,
+          PaymentDateandTime: form.transactionDateTime,
+          prefferedDateTime: form.prefferedDateTime,
+          Verified:false
         }
-      );
+      )
+        setpaymentstate(true)
+        toast.success('Verification request generated!');
+        navigate('/sessionbook')
+      
 
-      toast.success('Verification request generated!');
     } catch (error) {
       console.error('Error submitting payment:', error);
       toast.error('Something went wrong. Please try again.');
@@ -50,7 +78,7 @@ function PaymentPortal() {
 
   return (
     <>
-      <Navbar />
+      
       <div className="min-h-screen bg-[#f9f9ff] flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-xl p-8 md:p-12 w-full max-w-4xl">
           <h2 className="text-3xl font-semibold text-center text-[#3f3d56] mb-8">
@@ -116,6 +144,20 @@ function PaymentPortal() {
                   required
                 />
               </div>
+
+            <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Date & Time</label>
+  <input
+    type="datetime-local"
+    name="prefferedDateTime" // ✅ Correct
+    value={form.prefferedDateTime}
+    onChange={handleChange}
+    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
+    required
+  />
+</div>
+
+
 
               <button
                 type="submit"

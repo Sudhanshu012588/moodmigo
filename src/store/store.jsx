@@ -11,7 +11,12 @@ import {create} from 'zustand';
   },
   score: 0,
   type:"Client",
+  paymentState:false,
+  mentorId:"",
   setScore: (newScore) => set((state) => ({ score: newScore })), // Add this line
+  setMentorId: (newmentorId) => set((state) => ({ mentorId: newmentorId })), // Add this line
+
+  setpaymentstate: (newState)=>set((state)=>({paymentState:newState})),
   setUser: (newUser) => set((state) => ({ User: { ...state.User, ...newUser } })), // Change 'user' to 'User'
 setType: (newType) => set((state) => ({ ...state, type: newType }))
 }));

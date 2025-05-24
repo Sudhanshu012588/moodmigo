@@ -14,29 +14,37 @@ import { Query, Client, Databases } from 'appwrite';
 import { toast } from 'react-toastify';
 import { useMemo } from "react";
 
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 
 const Dashboard = () => {
-  const navigate = useNavigate();
+// Imports and constants
+const navigate = useNavigate();
 const today = new Date();
-const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
-  // Zustand states and setters
-  const user = useStore(state => state.User);
-  const setUser = useStore(state => state.setUser);
-  const score = useStore(state => state.score);
-  const setScore = useStore(state => state.setScore);
-  const [numberoftimes,setNumberofTimes] = useState(0)
-  // Local state
-  const [updateDate, setUpdateDate] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [numberOfBlogs, setNumberOfBlogs] = useState(0);
-  const [url,setUrl]=useState("")
-  const [professionals, setProfessionals] = useState([]);
-  const [journalEntries,setjournalEntries]=useState([])
-  // Appwrite client and database instances
+const formattedDate = today.toLocaleDateString("en-US", {
+  month: "numeric",
+  day: "numeric",
+  year: "numeric",
+});
 
+// Zustand states
+const user = useStore(state => state.User);
+const setUser = useStore(state => state.setUser);
+const score = useStore(state => state.score);
+const setScore = useStore(state => state.setScore);
 
-  const moods = [
+// Local states
+const [numberOfTimes, setNumberOfTimes] = useState(0);
+const [updateDate, setUpdateDate] = useState(null);
+const [isLoading, setIsLoading] = useState(true);
+const [numberOfBlogs, setNumberOfBlogs] = useState(0);
+const [url, setUrl] = useState("");
+const [professionals, setProfessionals] = useState([]);
+const [journalEntries, setJournalEntries] = useState([]);
+const [verifiedSessions, setVerifiedSessions] = useState([]);
+
+const moods = [
   { emoji: "😄", label: "Happy" },
   { emoji: "😐", label: "Neutral" },
   { emoji: "😔", label: "Sad" },
@@ -49,107 +57,101 @@ const getEmojiForMood = (moodLabel) => {
   return found ? found.emoji : "❓";
 };
 
-  const newClient = new Client()
-    .setEndpoint("https://fra.cloud.appwrite.io/v1")
-    .setProject("6826c7d8002c4477cb81");
-  const newDatabases = new Databases(newClient);
+const fetchUserData = async () => {
+  try {
+    const tempUser = await account.get();
+    setUser({
+      id: tempUser.$id,
+      name: tempUser.name,
+      email: tempUser.email,
+      password: '',
+      isLoggedIn: true,
+    });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Get user account info
-        const tempUser = await account.get();
-        setUser({
-          id: tempUser.$id,
-          name: tempUser.name,
-          email: tempUser.email,
-          password: '',
-          isLoggedIn: true,
-        });
+    const scoreResponse = await db.UsersAttributes.list([
+      Query.equal('UserId', tempUser.$id),
+    ]);
 
-        // Fetch latest questionnaire score
-        const scoreResponse = await db.UsersAttributes.list([
-          Query.equal('UserId', tempUser.$id),
-        ]);
-        if (scoreResponse.documents.length > 0) {
-          setScore(scoreResponse.documents[0].newScore);
-          setNumberofTimes(scoreResponse.documents[0].NumberOfTimesFilled)
-          setUpdateDate(scoreResponse.documents[0].lastUpdatedDate);
-        } else {
-          setScore(null);
-        }
-
-        // Fetch professionals linked to the user
-        try {
-          console.log(user.id)
-          const client = new Client()
-            .setEndpoint("https://fra.cloud.appwrite.io/v1")
-            .setProject("6826c7d8002c4477cb81");
-          const database = new Databases(client);
-          // console.log(user.id)
-          const response = await database.listDocuments(
-            "6826d3a10039ef4b9444",
-            "68275039000cb886ff5c",
-            [Query.equal("ClientId", user.id)]
-          );
-          
-          
-          // console.log(response)
-          
-          if (response.documents.length > 0) {
-            setProfessionals(response.documents);
-            console.log("proff",professionals)
-            console.log("Proff",response.documents)
-
-            // Example: extract URL field if exists (replace 'urlFieldName' with actual field)
-            // const firstUrl = response.documents[0]?.meetingurl || '';
-            // setUrl(firstUrl);
-            
-            // console.log(professionals)
-          } else {
-            setUrl('');
-          }
-        } catch (error) {
-          toast.info("No appointment with professionals");
-          // console.error(error);
-        }
-
-        // Fetch total blogs count
-        const blogResponse = await db.blog.list([]);
-        setNumberOfBlogs(blogResponse.total ?? 0);
-
-        // Load last assessment date from localStorage
-        
-
-      } catch (error) {
-        // console.error("User fetch failed:", error);
-        setUser(null);
-        setScore(null);
-        // Optionally redirect to login if unauthorized
-        // navigate('/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-
-    const getJournals = async()=>{
-      const client = new Client()
-      client.setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6820683500148a9573af")
-      const database = new Databases(client)
-      const journalResponse  = await database.listDocuments("6820add100102346d8b7","682ab3ed000b1c6f984c")
-          if(journalResponse.documents.length > 0){
-            setjournalEntries(journalResponse.documents)
-            console.log(journalEntries)
-          }
+    if (scoreResponse.documents.length > 0) {
+      const doc = scoreResponse.documents[0];
+      setScore(doc.newScore);
+      setNumberOfTimes(doc.NumberOfTimesFilled);
+      setUpdateDate(doc.lastUpdatedDate);
+    } else {
+      setScore(null);
     }
-    fetchData();
-    getJournals()
-  }, [setUser, setScore, navigate]);
 
-  // Debug log url state
-  // console.log('URL:', url);
+    const client = new Client().setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6826c7d8002c4477cb81");
+    const database = new Databases(client);
 
+    const proResponse = await database.listDocuments(
+      "6826d3a10039ef4b9444",
+      "68275039000cb886ff5c",
+      [Query.equal("ClientId", tempUser.$id)]
+    );
+
+    if (proResponse.documents.length > 0) {
+      setProfessionals(proResponse.documents);
+    } else {
+      setUrl("");
+    }
+
+    const blogResponse = await db.blog.list([]);
+    setNumberOfBlogs(blogResponse.total ?? 0);
+
+  } catch (error) {
+    setUser(null);
+    setScore(null);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+const fetchJournals = async () => {
+  const client = new Client().setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6820683500148a9573af");
+  const database = new Databases(client);
+
+  const response = await database.listDocuments("6820add100102346d8b7", "682ab3ed000b1c6f984c");
+  if (response.documents.length > 0) {
+    setJournalEntries(response.documents);
+  }
+};
+
+const fetchVerifiedSessions = async () => {
+  if (!user?.id) return;
+  const client = new Client().setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6826c7d8002c4477cb81");
+  const database = new Databases(client);
+
+  const response = await database.listDocuments(
+    "6826d3a10039ef4b9444",
+    "68275039000cb886ff5c",
+    [Query.equal("ClientId", user.id)]
+  );
+
+  const todayDateStr = today.toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const filtered = response.documents.filter(doc => doc.date === todayDateStr);
+  setVerifiedSessions(filtered);
+};
+
+useEffect(() => {
+  fetchUserData();
+  fetchJournals();
+}, [setUser, setScore]);
+
+useEffect(() => {
+  fetchVerifiedSessions();
+}, [user?.id]);
+  const date = new Date();
+const todayFormatted = date.toLocaleString("en-US", {
+          month: "numeric",
+          day: "numeric",
+          year: "numeric",
+        }).replace(",", ""); 
   if (isLoading) return <MoodMigoLoading />;
 
   return (
@@ -224,7 +226,7 @@ const getEmojiForMood = (moodLabel) => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
         {/* Left Sidebar */}
         <div className="lg:col-span-1 space-y-10">
-          {numberoftimes > 1 ? (
+          {numberOfTimes > 1 ? (
             <motion.div
               initial={{ opacity: 0, x: -25 }}
               animate={{ opacity: 1, x: 0 }}
@@ -242,15 +244,7 @@ const getEmojiForMood = (moodLabel) => {
                   Last Updated on: {updateDate || 'N/A'}
                 </span>
               </div>
-              <button
-            className="text-white border flex justify-center items-centers border-green-600 bg-green-600 hover:bg-green-700 px-6 py-2 rounded-xl text-sm font-semibold transition-colors shadow-md"
-            onClick={()=>{
-              if(user.isLoggedIn==true){navigate('/premium')}
-              // console.log(user.isLoggedIn)
-            }}
-          >
-            Upgrade to Premium
-          </button>
+              
             </motion.div>
           ) : (
             <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-gradient-to-r from-purple-200 to-blue-200 text-gray-800 px-5 py-3 rounded-2xl text-sm font-semibold shadow-sm border border-purple-300">
@@ -297,14 +291,16 @@ const getEmojiForMood = (moodLabel) => {
                         <p className="text-gray-600 text-sm">{session.time}</p>
                       </div>
                     </div>
-                    {session.date === formattedDate && (
-                      <button
-                        onClick={() => window.open(session.meetingurl, '_blank')}
-                        className="text-white border border-green-600 bg-green-600 hover:bg-green-700 px-6 py-2 rounded-xl text-sm font-semibold transition-colors shadow-md"
-                      >
-                        Join
-                      </button>
-                    )}
+
+                        <button
+                          onClick={() => window.open(session.meetingurl, '_blank')}
+                          className="mt-2 text-white border border-green-600 bg-green-600 hover:bg-green-700 px-6 py-2 rounded-xl text-sm font-semibold transition-colors shadow-md"
+                          aria-label={`Join session with ${session.ProfessionalName}`}
+                        >
+                          Join
+                        </button>
+                      
+
                   </div>
                 ))}
               </div>

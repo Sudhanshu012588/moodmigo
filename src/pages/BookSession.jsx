@@ -3,32 +3,45 @@ import DatePicker from 'react-datepicker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Clock, CheckCircle } from 'lucide-react';
 import 'react-datepicker/dist/react-datepicker.css';
-
-import { Client, Databases, Permission, Role, ID, Account } from 'appwrite'; // ✅ no 'User' here
+import { Client, Databases, ID, Account } from 'appwrite';
 import { useStore } from '../store/store';
 import Navbar from '../components/Navbar';
-import { account } from '../appwrite/config'; // assuming you've pre-configured Account instance here
+import { account } from '../appwrite/config';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-// Single Mentor Card component
+
 const MentorCard = ({ mentor, onBookSession }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [isBooked, setIsBooked] = useState(false);
+  const paymentState = useStore((state)=>state.paymentState)
+  const setPaymentState = useStore((state)=>state.setpaymentstate)
+  const user = useStore((state) => state.User);
+  const navigate = useNavigate();
+  const setMentor = useStore((state)=>state.setMentorId)
+
+  // Check if user has premium access or payment status - 
+  // Assuming you will update this state when user upgrades
+  // For now, assuming user object has a boolean 'isPremium'
+  // useEffect(() => {
+  //   console.log(pa)
+  // }, []);
 
   const handleBooking = () => {
-    if (selectedDate) {
-      onBookSession(mentor.id, selectedDate);
-      setIsBooked(true);
+    if (!selectedDate) {
+      toast.info('Please select a date and time');
+      return;
     }
+    onBookSession(mentor.id, selectedDate);
+    setIsBooked(true);
   };
 
-  // Ensure specialties is always an array of trimmed strings
+  // Parse specialties, accept array or comma-separated string
   const specialties = Array.isArray(mentor.specialties)
     ? mentor.specialties
     : typeof mentor.specialties === 'string'
     ? mentor.specialties.split(',').map((s) => s.trim())
     : [];
-  const navigate = useNavigate()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -63,84 +76,54 @@ const MentorCard = ({ mentor, onBookSession }) => {
             </span>
           ))}
         </div>
+        <h2 className="text-base font-medium mt-2 text-gray-700">
+          <span className="font-semibold text-purple-600">Charges:</span> {mentor.charges} per session
+        </h2>
       </div>
-
-      <div className="mb-4">
-        <h3 className="text-sm text-gray-700 font-medium flex items-center gap-2 mb-1">
-          <Clock size={16} /> Availability:
-        </h3>
-        <DatePicker
-          selected={selectedDate}
-          onChange={setSelectedDate}
-          showTimeSelect
-          timeFormat="HH:mm"
-          timeIntervals={15}
-          dateFormat="MMMM d, yyyy h:mm aa"
-          placeholderText="Select date & time"
-          minDate={new Date(new Date().setDate(new Date().getDate() + 3))}
-          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400 text-gray-800"
-        />
-      </div>
-
-      <button
-        onClick={handleBooking}
-        disabled={!selectedDate || isBooked}
-        className={`w-full py-2 mt-2 rounded-md text-sm font-medium transition ${
-          isBooked
-            ? 'bg-green-100 text-green-600 cursor-not-allowed'
-            : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-        }`}
+          <button
+        type="button"
+        onClick={() =>{ 
+          setMentor(mentor.name)
+          navigate('/sessionbook')}}
+        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 ml-5 rounded-xl shadow-lg hover:shadow-xl transition-transform duration-300 hover:scale-105 text-base font-semibold"
       >
-        {isBooked ? (
-          <span className="flex items-center justify-center gap-2">
-            <CheckCircle size={16} /> Requested
-          </span>
-        ) : (
-          'Book Session'
-        )}
+        Book A Session
       </button>
 
-      {isBooked && (
-        <p className="mt-2 text-xs text-green-600 text-center">
-          Session Rsequested for {selectedDate?.toLocaleDateString()}!
-        </p>
-      )}
+      
     </motion.div>
   );
 };
 
-// Main MentorBooking component
 const MentorBooking = () => {
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const currentuser = useStore((state) => state.User.id);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const client = new Client();
-        client
+        const client = new Client()
           .setEndpoint('https://fra.cloud.appwrite.io/v1')
           .setProject('6826c7d8002c4477cb81');
 
         const databases = new Databases(client);
-        const res = await databases.listDocuments(
-          '6826d3a10039ef4b9444',
-          '6826dd9700303a5efb90'
-        );
+        const res = await databases.listDocuments('6826d3a10039ef4b9444', '6826dd9700303a5efb90');
 
         const formattedMentors = res.documents.map((doc) => ({
-          id: doc.id,
+          id: doc.$id,
           name: doc.username || 'Unnamed',
           bio: doc.bio || '',
           avatar: doc.avatar || 'https://placehold.co/100x100?text=Avatar',
           specialties: doc.specialties,
+          charges: doc.Charges,
           availableDates: doc.availableDates,
         }));
 
         setMentors(formattedMentors);
       } catch (error) {
-        toast.error('Error fetching mentors:', error)
+        toast.error('Error fetching mentors.');
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -149,59 +132,60 @@ const MentorBooking = () => {
     fetchMentors();
   }, []);
 
-  const handleBookSession = async(mentorId, selectedDate) => {
+  const handleBookSession = async (mentorId, selectedDate) => {
     if (!selectedDate) return;
 
     const dateStr = selectedDate.toLocaleDateString();
-    const timeStr = selectedDate.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    const user = await account.get("current")
-    const bookingObj = {
-      MentorId: mentorId,
-      ClientId: user.$id || 'unknown-user',
-      date: dateStr,
-      time: timeStr,
-    };
-    fixSession(bookingObj)
+    const timeStr = selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    try {
+      const user = await account.get();
+
+      const bookingObj = {
+        MentorId: mentorId,
+        ClientId: user.$id,
+        username: user.name,
+        date: dateStr,
+        time: timeStr,
+        Verified: false,
+      };
+
+      await createBooking(bookingObj);
+    } catch (error) {
+      toast.error("Couldn't complete the booking");
+      console.error(error);
+    }
   };
 
-const fixSession = async (bookingObj) => {
-  const client = new Client();
+  const createBooking = async (bookingObj) => {
+    try {
+      const client = new Client()
+        .setEndpoint('https://fra.cloud.appwrite.io/v1')
+        .setProject('6820683500148a9573af');
 
-  client
-    .setEndpoint('https://fra.cloud.appwrite.io/v1')
-    .setProject('6820683500148a9573af');
+      const databases = new Databases(client);
 
-  const account = new Account(client);
+      await databases.createDocument(
+        '6820add100102346d8b7',
+        '68280ac50027ed33d5d2',
+        ID.unique(),
+        {
+          Mentorid: bookingObj.MentorId,
+          Clientid: bookingObj.ClientId,
+          username: bookingObj.username,
+          date: bookingObj.date,
+          time: bookingObj.time,
+          Verified: false,
+        }
+      );
 
-  try {
-    const user = await account.get(); // ✅ Gets the current logged-in user's data
-    const username = user.name;       // ✅ Extracts the username (can also use email or $id if needed)
+      toast.success("Session Requested");
+    } catch (error) {
+      console.error("Error fixing session:", error);
+      toast.error("Something went wrong!");
+    }
+  };
 
-    const databases = new Databases(client);
-
-    await databases.createDocument(
-      '6820add100102346d8b7', // Database ID
-      '68280ac50027ed33d5d2', // Collection ID
-      ID.unique(),
-      {
-        Mentorid: bookingObj.MentorId,
-        Clientid: currentuser,
-        username: username,
-        date: bookingObj.date,
-        time: bookingObj.time
-      }
-    );
-
-    toast.success("Session Requested");
-  } catch (error) {
-    console.error("Error fixing session:", error);
-    toast.error("Something went wrong!");
-  }
-};
-const navigate = useNavigate()
   return (
     <>
       <Navbar />
@@ -230,13 +214,14 @@ const navigate = useNavigate()
           </AnimatePresence>
         )}
       </div>
+
       <button
-    type="button" 
-    onClick={() => navigate('/dashboard')}
-    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8  ml-5 rounded-xl shadow-lg hover:shadow-xl transition-transform duration-300 hover:scale-105 text-base font-semibold"
-  >
-    Back
-  </button>
+        type="button"
+        onClick={() => navigate('/dashboard')}
+        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 ml-5 rounded-xl shadow-lg hover:shadow-xl transition-transform duration-300 hover:scale-105 text-base font-semibold"
+      >
+        Back
+      </button>
     </>
   );
 };
