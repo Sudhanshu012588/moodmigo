@@ -25,12 +25,14 @@ const inputVariants = {
 const initialFormState = {
   // Section A: General Information
   "Full Name": "",
-  "Date of Birth": "",
-  "Gender": "",
+  "Age": "",
+  "Sex": "",
   "Date of Assessment": "",
   "Contact Information": "",
-  "Occupation / School": "",
+  Occupation: "",
   "Emergency Contact": "",
+  "FamilyType":"",
+  "FamilyMember":"",
 
   // Section B: Mental Health History
   diagnosed: "",
@@ -62,12 +64,16 @@ const initialFormState = {
   // Section E: Social & Emotional Well-being
   connectedness: "",
   safety: "",
-  safetyDetails: "",
+  safetyDetails: "NO",
   hobbies: "",
   copingStrategies: [], // multiple checkbox values stored as array
 };
+
+
+
 const MoodMigoQuestionnaire = () => {
   const userID = useStore((state) => state.User.id);
+  const [interpretation,setinterpretation]=useState("")
   // const score = useStore((state) => state.score);
   // const setScore = useStore((state) => state.setScore);
   const [form, setForm] = useState(initialFormState);
@@ -76,20 +82,19 @@ const MoodMigoQuestionnaire = () => {
   const setUser = useStore((state) => state.setUser);
   const navigate = useNavigate();
   const [score,setScore]=useState(0)
-
  const handleSubmit = async (e) => {
   console.log(typeof(userID))
   e.preventDefault();
   
   // STEP 1: Validate all fields are filled
   const requiredFields = [
-    "Full Name",
-    "Date of Birth",
-    "Gender",
+    "Age",
+    "Sex",
+    "FamilyType",
+    "FamilyMember",
     "Date of Assessment",
     "Contact Information",
     "Emergency Contact",
-    "Occupation / School",
     "Feeling down, depressed, or hopeless",
     "Little interest or pleasure in doing things",
     "Feeling nervous, anxious, or on edge",
@@ -102,19 +107,10 @@ const MoodMigoQuestionnaire = () => {
     "Thoughts of self-harm or suicide",
     "dailyFunction",
     "substanceUse",
-    "substanceDetails",
     "lifeChanges",
-    "changeDetails",
     "connectedness",
     "safety",
-    "safetyDetails",
-    "hobbies",
-    "diagnosed",
-    "treatment",
-    "treatmentType",
-    "provider",
-    "hospitalized",
-    "hospitalReason",
+    "hobbies"
   ];
 
   const emptyField = requiredFields.find(
@@ -155,6 +151,7 @@ setIsSubmitted(true);
       lifeChanges: truncate(form.lifeChanges),
       changeDetails: truncate(form.changeDetails),
       connectedness: truncate(form.connectedness),
+
       safety: truncate(form.safety),
       safetyDetails: truncate(form.safetyDetails),
       hobbies: truncate(form.hobbies),
@@ -166,8 +163,9 @@ setIsSubmitted(true);
       hospitalReason: truncate(form.hospitalReason),
     };
     
-    const geminiScoreRaw = await getScore(JSON.stringify(cleanedForm));
-    const geminiScore = Math.round(Number(geminiScoreRaw.totalScore));
+    const geminiScoreRaw = await getScore(JSON.stringify(form));
+    const geminiScore = geminiScoreRaw.totalScore;
+    setinterpretation(geminiScoreRaw.interpretation)
     console.log("gemini",geminiScore)
     setScore(geminiScore);
     console.log("StoreScore",score)
@@ -180,12 +178,14 @@ setIsSubmitted(true);
       const questionareResponse = await db.Questionare.create({
         userid:userID,
         FullName: cleanedForm["Full Name"],
-        DateOfBirth: cleanedForm["Date of Birth"],
-        Gender: cleanedForm["Gender"],
+        FamilyType:form.FamilyType,
+        Age: form.Age,
+        Sex: form.Sex,
+        FamilyMember:form.FamilyMember,
         DateOfAssessment: cleanedForm["Date of Assessment"],
         ContactInformation: cleanedForm["Contact Information"],
         EmergencyContact: cleanedForm["Emergency Contact"],
-        OccupationSchool: cleanedForm["Occupation / School"],
+        OccupationSchool: form.Occupation,
         Diagnosed: cleanedForm.diagnosed,
         Treatment: cleanedForm.treatment,
         TreatmentType: cleanedForm.treatmentType,
@@ -226,12 +226,14 @@ setIsSubmitted(true);
     const updateQuestionareResponse = await db.Questionare.update(getquestionare.documents[0].$id,{
         userid:userID,
         FullName: cleanedForm["Full Name"],
-        DateOfBirth: cleanedForm["Date of Birth"],
-        Gender: cleanedForm["Gender"],
+        FamilyType:form.FamilyType,
+        Age: form.Age,
+        Sex: form.Sex,
+        FamilyMember:form.FamilyMember,
         DateOfAssessment: cleanedForm["Date of Assessment"],
         ContactInformation: cleanedForm["Contact Information"],
         EmergencyContact: cleanedForm["Emergency Contact"],
-        OccupationSchool: cleanedForm["Occupation / School"],
+        OccupationSchool: form.Occupation,
         Diagnosed: cleanedForm.diagnosed,
         Treatment: cleanedForm.treatment,
         TreatmentType: cleanedForm.treatmentType,
@@ -250,14 +252,14 @@ setIsSubmitted(true);
         ThoughtsOfSelfHarmOrSuicide: cleanedForm["Thoughts of self-harm or suicide"],
         DailyFunction: cleanedForm.dailyFunction,
         SubstanceUse: cleanedForm.substanceUse,
-        SubstanceDetails: cleanedForm.substanceDetails,
-        LifeChanged: cleanedForm.lifeChanges,
-        ChangeDetails: cleanedForm.changeDetails,
-        Connectedness: cleanedForm.connectedness,
-        Safety: cleanedForm.safety,
-        SafetyDetails: cleanedForm.safetyDetails,
-        Hobbies: cleanedForm.hobbies,
-        CopingStrategies: cleanedForm.CopingStrategies,
+      SubstanceDetails: cleanedForm.substanceDetails,
+      LifeChanged: cleanedForm.lifeChanges,
+      ChangeDetails: cleanedForm.changeDetails,
+      Connectedness: cleanedForm.connectedness,
+      Safety: cleanedForm.safety,
+      SafetyDetails: cleanedForm.safetyDetails,
+      Hobbies: cleanedForm.hobbies,
+      CopingStrategies: cleanedForm.CopingStrategies,
       }).then(async()=>{
       const targetattributesResponse = await db.UsersAttributes.list([Query.equal("UserId",userID)])
       if(targetattributesResponse.documents.length > 0){
@@ -274,7 +276,7 @@ setIsSubmitted(true);
           lastUpdatedDate:formattedDate,
           NumberOfTimesFilled:parseInt(timesFilled)+1
         })
-        console.log(updateattributesResponse.documents)
+        // console.log(updateattributesResponse.documents)
       }
       
     })
@@ -376,13 +378,14 @@ const handleChange = (e) => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  "Full Name",
-                  "Date of Birth",
-                  "Gender",
+                  "Full Name (Optional)",
+                  "Age",
+                  "Sex",
                   "Date of Assessment",
                   "Contact Information",
-                  "Occupation / School",
+                  "Occupation / Education",
                   "Emergency Contact",
+                  "FamilyType"
                 ].map((label) => (
                   <motion.div key={label} variants={inputVariants} initial="initial" animate="animate">
                     <input
@@ -405,7 +408,7 @@ const handleChange = (e) => {
                 B. Mental Health History
               </h2>
               <div className="mb-4">
-                <label className="block text-gray-900 mb-2">Ever diagnosed with a mental condition?</label>
+                <label className="block text-gray-900 mb-2">Ever diagnosed with a mental health condition?</label>
                 <select
                   name="diagnosed"
                   value={form.diagnosed}
@@ -418,64 +421,22 @@ const handleChange = (e) => {
                 </select>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-gray-900 mb-2">Currently receiving treatment?</label>
-                <select
-                  name="treatment"
-                  value={form.treatment}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-400 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
-                >
-                  <option value="">Select</option>
-                  <option>Yes</option>
-                  <option>No</option>
-                </select>
-              </div>
+              
 
+              
               <motion.div variants={inputVariants} initial="initial" animate="animate" className="mb-4">
                 <input
                   type="text"
-                  name="treatmentType"
-                  placeholder="Type of Treatment"
-                  value={form.treatmentType}
+                  name="FamilyMember"
+                  placeholder="Any Family Member Ever diagnosed with a mental health condition Please Fill No is not"
+                  value={form.FamilyMember}
                   className="w-full px-4 py-3 rounded-xl border border-gray-400 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
                   onChange={handleChange}
                 />
               </motion.div>
-              <motion.div variants={inputVariants} initial="initial" animate="animate" className="mb-4">
-                <input
-                  type="text"
-                  name="provider"
-                  placeholder="Provider Name/Organization"
-                  value={form.provider}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-400 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
-                  onChange={handleChange}
-                />
-              </motion.div>
-
-              <div className="mb-4">
-                <label className="block text-gray-900 mb-2">Hospitalized for mental health?</label>
-                <select
-                  name="hospitalized"
-                  value={form.hospitalized}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-400 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
-                >
-                  <option value="">Select</option>
-                  <option>Yes</option>
-                  <option>No</option>
-                </select>
-              </div>
-              <motion.div variants={inputVariants} initial="initial" animate="animate" className="mb-4">
-                <input
-                  type="text"
-                  name="hospitalReason"
-                  placeholder="When and Why?"
-                  value={form.hospitalReason}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-400 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
-                  onChange={handleChange}
-                />
-              </motion.div>
+              
+              
+              
             </section>
 
             {/* Section C: Symptom Checklist */}
@@ -685,6 +646,10 @@ const handleChange = (e) => {
             <CheckCircle className="w-16 h-16 mx-auto text-green-600 mb-4" />
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">Thank you!</h2>
             <p className="text-gray-800 mb-6">Your responses have been submitted successfully.</p>
+            <br/>
+            <p className="text-gray-800 mb-6">{interpretation}</p>
+
+            
           </motion.div>
         )}
       </AnimatePresence>
