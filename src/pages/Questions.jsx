@@ -87,31 +87,52 @@ const MoodMigoQuestionnaire = () => {
   e.preventDefault();
   
   // STEP 1: Validate all fields are filled
-  const requiredFields = [
-    "Age",
-    "Sex",
-    "FamilyType",
-    "FamilyMember",
-    "Date of Assessment",
-    "Contact Information",
-    "Emergency Contact",
-    "Feeling down, depressed, or hopeless",
-    "Little interest or pleasure in doing things",
-    "Feeling nervous, anxious, or on edge",
-    "Trouble relaxing",
-    "Excessive worry",
-    "Fatigue or low energy",
-    "Changes in appetite",
-    "Sleep disturbances",
-    "Difficulty concentrating",
-    "Thoughts of self-harm or suicide",
-    "dailyFunction",
-    "substanceUse",
-    "lifeChanges",
-    "connectedness",
-    "safety",
-    "hobbies"
-  ];
+ const requiredFields = [
+  // Section A: General Information
+  "Age",
+  "Sex",
+  "Date of Assessment",
+  "Contact Information",
+  "Occupation",
+  "Emergency Contact",
+  "FamilyType",
+  "FamilyMember",
+
+  // Section B: Mental Health History
+  "diagnosed",
+  "treatment",
+  "treatmentType",
+  "provider",
+  "hospitalized",
+  "hospitalReason",
+
+  // Section C: Symptom Checklist (Past 2 Weeks)
+  "Feeling down, depressed, or hopeless",
+  "Little interest or pleasure in doing things",
+  "Feeling nervous, anxious, or on edge",
+  "Trouble relaxing",
+  "Excessive worry",
+  "Fatigue or low energy",
+  "Changes in appetite",
+  "Sleep disturbances",
+  "Difficulty concentrating",
+  "Thoughts of self-harm or suicide",
+
+  // Section D: Behavioral Patterns
+  "dailyFunction",
+  "substanceUse",
+  "substanceDetails",
+  "lifeChanges",
+  "changeDetails",
+
+  // Section E: Social & Emotional Well-being
+  "connectedness",
+  "safety",
+  "safetyDetails",
+  "hobbies",
+  "copingStrategies"
+];
+
 
   const emptyField = requiredFields.find(
     (field) => !form[field] || (typeof form[field] === "string" && form[field].trim() === "")

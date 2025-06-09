@@ -111,7 +111,7 @@ const fetchJournals = async () => {
   const client = new Client().setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6820683500148a9573af");
   const database = new Databases(client);
 
-  const response = await database.listDocuments("6820add100102346d8b7", "682ab3ed000b1c6f984c");
+  const response = await database.listDocuments("6820add100102346d8b7", "682ab3ed000b1c6f984c",[Query.equal("creatorid", user.id)]);
   if (response.documents.length > 0) {
     setJournalEntries(response.documents);
   }

@@ -34,7 +34,8 @@ const JournalEntry = () => {
             })
             
         } catch (error) {
-            toast.error("Can't create Entry",error)        }
+          console.log(error)
+            toast.error(error.message)        }
             
         }
         const handleSubmit = (e) => {
