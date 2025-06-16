@@ -8,6 +8,8 @@ import {create} from 'zustand';
     email: "",
     password: "",
     isLoggedIn: false,
+    profilepicture:"",
+    coverimage:""
   },
   score: 0,
   type:"Client",

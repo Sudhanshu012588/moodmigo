@@ -42,9 +42,9 @@ const Login = () => {
           name: user.name,
           email: user.email,
           password: form.password,
-          isLoggedIn: true,
+          isLoggedIn: true
         });
-
+        console.log(user)
         toast.success("Login successful!");
         navigate("/dashboard");
       } else {
