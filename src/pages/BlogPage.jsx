@@ -55,6 +55,7 @@ export default function BlogSection() {
         Author: User.name || "Anonymous",
         title: blogInput.title,
         content: blogInput.content,
+        profilephoto:User.profilepicture
       });
 
       // Immediately update the blog list without re-fetching
@@ -160,9 +161,10 @@ export default function BlogSection() {
               <Link key={idx} to={`/blog/${blog.$id}`} className="block hover:shadow-md transition-shadow duration-300 bg-white p-4 rounded-lg shadow-sm">
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
+                    
                     {/* Placeholder for user avatar (you might fetch this) */}
                     <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-semibold">
-                      {blog.Author ? blog.Author.charAt(0).toUpperCase() : "A"}
+                      <img src={blog.profilephoto} className="rounded-full" alt="" />
                     </div>
                   </div>
                   <div className="flex-grow">
