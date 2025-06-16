@@ -259,6 +259,7 @@ const handleCoverUpload = async () => {
       '6825e61f00204ab15ecf',
       [Query.equal('UserId', user.id)]
     );
+    console.log("total",userattribute)
 
     if (userattribute.total > 0) {
       const docId = userattribute.documents[0].$id;

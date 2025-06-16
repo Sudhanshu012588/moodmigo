@@ -93,18 +93,12 @@ const MoodMigoQuestionnaire = () => {
   "Sex",
   "Date of Assessment",
   "Contact Information",
-  "Occupation",
   "Emergency Contact",
   "FamilyType",
   "FamilyMember",
 
   // Section B: Mental Health History
   "diagnosed",
-  "treatment",
-  "treatmentType",
-  "provider",
-  "hospitalized",
-  "hospitalReason",
 
   // Section C: Symptom Checklist (Past 2 Weeks)
   "Feeling down, depressed, or hopeless",
