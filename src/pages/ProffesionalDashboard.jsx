@@ -18,7 +18,7 @@ const ProfessionalDashboard = () => {
   const navigate = useNavigate();
   const user = useStore(state => state.User);
   const setUser = useStore(state => state.setUser);
-
+  
   const [isLoading, setIsLoading] = useState(true);
   const [sessionArray, setSessionsArray] = useState([]);
   const [confirmedAppointments, setConfirmedAppointments] = useState([]);
@@ -28,6 +28,7 @@ const ProfessionalDashboard = () => {
   const [meetings,setMeetings]=useState([])
   const [link,setLink]=useState("")
   const [clientname, setClientname] = useState('')
+  
 
   const today = new Date();
 const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
@@ -62,7 +63,7 @@ useEffect(() => {
         
         setSessionsArray(response.documents.filter(doc => doc.confirmation === false));
         setConfirmedAppointments(response.documents.filter(doc => doc.confirmation === true));
-        console.log("Deleted session:", id);
+        //console.log("Deleted session:", id);
       } catch (error) {
         console.error("Error deleting session:", error);
       }
@@ -75,7 +76,7 @@ useEffect(() => {
           "68275039000cb886ff5c",
           id
         );
-        console.log("Deleted main record:", id);
+        //console.log("Deleted main record:", id);
       } catch (error) {
         console.error("Error deleting main record:", error);
       }
@@ -99,29 +100,72 @@ useEffect(() => {
 }, [meetings]);
 
 // Fetch logged-in professional user info
+// Fetch logged-in professional user info
 useEffect(() => {
   const fetchProfessionalData = async () => {
-      setIsLoading(true);
-      
-      try {
-        const client = new Client()
+    setIsLoading(true);
+    
+    try {
+      const client = new Client()
         .setEndpoint("https://fra.cloud.appwrite.io/v1")
         .setProject("6826c7d8002c4477cb81");
-        
-        const account = new Account(client);
-        const tempUser = await account.get('current');
+      
+      const account = new Account(client);
+      const tempUser = await account.get('current');
 
-        setUser({ ...tempUser, isLoggedIn: true, name: tempUser.name, id: tempUser.$id });
-      } catch (error) {
-        toast.error("Professional dashboard data fetch failed");
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      setUser({ ...tempUser, isLoggedIn: true, name: tempUser.name, id: tempUser.$id });
+      
+      // Now that we have the user, fetch appointments
+      const fetchAppointments = async () => {
+        const database = new Databases(client);
+        try {
+          const response = await database.listDocuments(
+            "6826d3a10039ef4b9444",
+            "68275039000cb886ff5c",
+            [Query.equal("Mentorid", tempUser.$id)]
+          );
 
-    fetchProfessionalData();
-  }, [setUser]);
+          console.log(response.documents[0])
+
+          const date = new Date();
+
+const year = date.getFullYear();
+const month = String(date.getMonth() + 1).padStart(2, "0");
+const day = String(date.getDate()).padStart(2, "0");
+// const hours = String(date.getHours()).padStart(2, "0");
+// const minutes = String(date.getMinutes()).padStart(2, "0");
+
+const formattedDateTime = `${year}-${month}-${day}`;
+          console.log(formattedDateTime)
+          const todaysAppointments = response.documents.filter((appointment) =>
+            appointment.date?.includes(formattedDateTime) && appointment.meetingurl != null
+          );
+          console.log("Sorted Ap",todaysAppointments)
+          setConfirmedAppointments(todaysAppointments);
+          
+          if (todaysAppointments.length === 0) {
+            toast.info("No appointment today");
+          }
+        } catch (error) {
+          toast.error("Failed to fetch appointments");
+          console.error(error);
+        }
+      };
+      
+      fetchAppointments();
+      
+    } catch (error) {
+      toast.error("Professional dashboard data fetch failed");
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchProfessionalData();
+}, [setUser]); // Only setUser as dependency
+
+// Remove the separate getAppointments effect completely
 
   // Fetch sessions and confirmed appointments
   useEffect(() => {
@@ -163,7 +207,7 @@ useEffect(() => {
           [Query.equal("Mentorid", user.id)]
         );
         setMeetings(newsessions.documents);
-        console.log(newsessions.documents);
+        //console.log(newsessions.documents);
       } catch (error) {
         console.error("Error fetching meetings:", error);
       }
@@ -178,6 +222,7 @@ useEffect(() => {
     
     // Confirm a session and create appointment
     const handleConfirm = async (sessionId) => {
+      console.log("Sessionid",sessionId)
       try {
         const client = new Client()
         .setEndpoint("https://fra.cloud.appwrite.io/v1")
@@ -205,6 +250,20 @@ useEffect(() => {
       const roomName = `${sessionId}`;
       const newmeetingUrl = `https://meet.jit.si/${roomName}`;
       if (session) {
+
+        console.log("Session id",session)
+
+        const dummydata = await profDatabases.listDocuments(
+  "6826d3a10039ef4b9444",
+  "68275039000cb886ff5c",
+  [
+    Query.equal("Mentorid", session.Mentorid),
+    Query.equal("ClientId", session.Clientid)
+  ]
+);
+
+  await profDatabases.deleteDocument("6826d3a10039ef4b9444",
+          "68275039000cb886ff5c",dummydata.documents[0].$id);
         await profDatabases.createDocument(
           "6826d3a10039ef4b9444",
           "68275039000cb886ff5c",
@@ -217,6 +276,7 @@ useEffect(() => {
             username:session.username
           }
         );
+
 
         await databases.deleteDocument(
         "6820add100102346d8b7",
@@ -238,7 +298,35 @@ useEffect(() => {
       toast.error("Failed to confirm session");
       console.error(error);
     }
+
   };
+
+  // const [myid,setMyid] = useState("")
+  // useEffect(() => {
+  //   const randomfun = async()=>{
+
+  //     try {
+  //       const client = new Client()
+  //       .setEndpoint("https://fra.cloud.appwrite.io/v1")
+  //       .setProject("6826c7d8002c4477cb81");
+        
+  //       const account = new Account(client);
+  //       const tempUser = await account.get('current');
+        
+  //       setUser({id: tempUser.$id });
+  //       setMyid(tempUser.$id)
+  //       console.log("temp user",myid)
+  //     } catch (error) {
+  //       toast.error("Professional dashboard data fetch failed");
+  //       setUser(null);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   }
+
+  //   randomfun();
+  // }, [])
+  
   
   // Show DatePicker for rescheduling
   const handleShowReschedule = (id, currentDate) => {
@@ -318,50 +406,62 @@ useEffect(() => {
     }
   };
 
-  useEffect(() => {
-   const getAppointments = async () => {
-      const client = new Client()
-        .setEndpoint("https://fra.cloud.appwrite.io/v1")
-        .setProject("6826c7d8002c4477cb81");
+//   useEffect(() => {
+//    const getAppointments = async () => {
+//       const client = new Client()
+//         .setEndpoint("https://fra.cloud.appwrite.io/v1")
+//         .setProject("6826c7d8002c4477cb81");
 
-      const database = new Databases(client);
+//       const database = new Databases(client);
 
-      try {
-        const response = await database.listDocuments(
-          "6826d3a10039ef4b9444",
-          "68275039000cb886ff5c",
-          [Query.equal("Mentorid", user.id)]
-        );
+//       try {
+//         // const response = await database.listDocuments(
+//         //   "6826d3a10039ef4b9444",
+//         //   "68275039000cb886ff5c",
+//         //   [Query.equal("Mentorid", user.id)]
+//         // );
+//         // //console.log("My appointments response",response)
+//         const response = await database.listDocuments("6826d3a10039ef4b9444","68275039000cb886ff5c",[Query.equal("Mentorid",user.id)])
+//         console.log("Response",response)
 
-        const date = new Date();
-        const formattedDateTime = date.toLocaleString("en-US", {
-          month: "numeric",
-          day: "numeric",
-          year: "numeric",
-        }).replace(",", ""); // "5/24/2025 10:27 PM"
-        console.log(formattedDateTime)
-        const todaysAppointments = response.documents.filter((appointment) =>
-          appointment.date?.includes(formattedDateTime)
-        );
-          setConfirmedAppointments(todaysAppointments)
+//         //console.log("My appointments",response.documents[0])
+//         const date = new Date();
+
+// const year = date.getFullYear();
+// const month = String(date.getMonth() + 1).padStart(2, "0");
+// const day = String(date.getDate()).padStart(2, "0");
+// const hours = String(date.getHours()).padStart(2, "0");
+// const minutes = String(date.getMinutes()).padStart(2, "0");
+
+// const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+// //console.log(formattedDateTime);  // Example: "2025-06-19T12:26"
+
+//         //console.log(formattedDateTime)
+//         //console.log("Appointments",response.documents)
+//         const todaysAppointments = response.documents.filter((appointment) =>
+//           appointment.date?.includes(formattedDateTime)
+//         );
+//           setConfirmedAppointments(todaysAppointments)
         
-        if (todaysAppointments.length === 0) {
-          toast.info("No appointment today");
-        }
+//         if (todaysAppointments.length === 0) {
+//           toast.info("No appointment today");
+//         }
 
-      } catch (error) {
-        toast.error("Failed to fetch appointments");
-        console.error(error);
-      }
-    };
+//       } catch (error) {
+//         toast.error("Failed to fetch appointments");
+//         console.error(error);
+//       }
+//     };
 
-    getAppointments()
-    console.log("Todays",meetings)
-  }, [])
+//     getAppointments()
+//     //console.log("Todays",meetings)
+//   }, [user])
   
   const handleJoinMeeting = (id) => {
     // const roomName = `${ID.unique()}`;
     // const meetingUrl = `https://meet.jit.si/${roomName}`;
+    console.log(id)
     window.open(id, "_blank");
   };
   
@@ -492,22 +592,20 @@ useEffect(() => {
           {/* Confirmed Appointments */}
          <motion.section>
   <h2 className="text-xl font-semibold mb-4">Confirmed Appointments</h2>
-  {meetings.length === 0 ? (
+  {confirmedAppointments.length === 0 ? (
     <p className="text-gray-500">No confirmed appointments.</p>
   ) : (
-    meetings.map(({ $id, username, date, meetingurl }) => (
+    confirmedAppointments.map(({ $id, username, date, meetingurl }) => (
       <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
         <div>
           <p><span className="font-semibold">Client:</span> {username}</p>
           <p><span className="font-semibold">Date:</span> {date}</p>
         </div>
-        {date == date.toLocaleString("en-US", {
-          month: "numeric",
-          day: "numeric",
-          year: "numeric",
-        }).replace(",", "") && (
+        {(
           <button
-            onClick={() => handleJoinMeeting(meetingurl)}
+            onClick={() => {handleJoinMeeting(meetingurl)
+              console.log("data",confirmedAppointments)
+            }}
             className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
           >
             Join Meeting
