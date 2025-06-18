@@ -38,7 +38,7 @@ export default function Footer() {
         {/* Contact */}
         <div>
           <h3 className="text-lg font-semibold mb-2">Contact</h3>
-          <p className="mb-1">shriyajain1011@gmail.com
+          <p className="mb-1">moodmigopvtltd@gmail.com 
 
 </p>
           <p className="mb-3"></p>
