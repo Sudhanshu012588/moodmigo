@@ -13,7 +13,7 @@ function Session() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');
   const [confirmedSession, setConfirmedSession] = useState(null);
-
+  const [BookedSlots,setBookedSlots]=useState([])
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,7 +27,13 @@ function Session() {
       "6826dd9700303a5efb90",
       [Query.equal('username', mentor)]
     );
-    console.log(res.documents)
+
+    // console.log("id",res.documents[0])
+    const appointmentRes = await database.listDocuments('6826d3a10039ef4b9444',"68275039000cb886ff5c",[Query.equal('Mentorid',res.documents[0].id)])
+    // console.log("appointment",appointmentRes.documents[0])
+  const slots = appointmentRes.documents.map(doc => doc.date);
+    setBookedSlots(slots)
+    console.log('Booked',slots)
     setMentorData(res.documents);
   };
 
@@ -124,6 +130,16 @@ function Session() {
             <p><strong>Charges:</strong> ₹{confirmedSession.charges}</p>
           </div>
         )}
+        {BookedSlots.length > 0 && (
+                  <div className="mt-2 text-sm text-red-600">
+                    <strong>Booked Slots:</strong>
+                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                      {BookedSlots.map((slot, index) => (
+                        <li key={index}>{slot}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
       </div>
     </>
   );

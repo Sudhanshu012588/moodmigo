@@ -262,6 +262,8 @@ const formattedDateTime = `${year}-${month}-${day}`;
   ]
 );
 
+console.log(dummydata.documents[0])
+
   await profDatabases.deleteDocument("6826d3a10039ef4b9444",
           "68275039000cb886ff5c",dummydata.documents[0].$id);
         await profDatabases.createDocument(
