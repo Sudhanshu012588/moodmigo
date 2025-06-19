@@ -145,7 +145,7 @@ const fetchVerifiedSessions = async () => {
 };
 const handleProfileImageChange = (e) => {
     const file = e.target.files[0];
-    console.log(file)
+    //console.log(file)
     if (file) {
       setProfileImageFile(file);
       setProfilePhotoPreview(URL.createObjectURL(file)); // Create a preview URL
@@ -156,7 +156,7 @@ const handleProfileImageChange = (e) => {
   const file = e.target.files[0];
   if (file) {
     setCoverImageFile(file); // Assuming you have this in useState
-    console.log("Selected file:", coverImageFile);
+    //console.log("Selected file:", coverImageFile);
   }
 };
 
@@ -259,7 +259,7 @@ const handleCoverUpload = async () => {
       '6825e61f00204ab15ecf',
       [Query.equal('UserId', user.id)]
     );
-    console.log("total",userattribute)
+    //console.log("total",userattribute)
 
     if (userattribute.total > 0) {
       const docId = userattribute.documents[0].$id;
@@ -314,7 +314,7 @@ useEffect(() => {
 }, []); // Add `user.id` as a dependency
 
 useEffect(() => {
-  console.log(user.profilepicture)
+  //console.log(user.profilepicture)
 }, [user.profilepicture])
 
 
@@ -370,7 +370,7 @@ const todayFormatted = date.toLocaleString("en-US", {
     type="file"
     accept="image/*"
     onChange={(e) => {
-      console.log("Cover image changed");
+      //console.log("Cover image changed");
       handleCoverImageChange(e); // this should set coverImageFile
     }}
     disabled={uploadingCover}
@@ -415,7 +415,7 @@ const todayFormatted = date.toLocaleString("en-US", {
     type="file"
     accept="image/*"
     onChange={(e) => {
-      console.log("Profile image changed");
+      //console.log("Profile image changed");
       handleProfileImageChange(e); // this should set profileImageFile
     }}
     disabled={uploadingProfile}
