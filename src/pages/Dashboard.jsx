@@ -351,7 +351,7 @@ const todayFormatted = date.toLocaleString("en-US", {
           >
             {/* Cover Section */}
 {/* Cover Section */}
-<div className="relative h-64 group bg-gray-300 dark:bg-gray-700 overflow-hidden rounded-b-xl">
+<div className="relative h-80 group bg-gray-300 dark:bg-gray-700 overflow-hidden rounded-b-xl">
   {/* Make entire cover area clickable */}
   <label htmlFor="cover-upload" className="block w-full h-full cursor-pointer">
     <img
