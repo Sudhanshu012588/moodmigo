@@ -357,7 +357,7 @@ useEffect(() => {
 
     getAppointments()
     console.log("Todays",meetings)
-  }, [])
+  },[])
   
   const handleJoinMeeting = (id) => {
     // const roomName = `${ID.unique()}`;
