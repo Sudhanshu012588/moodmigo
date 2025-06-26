@@ -24,12 +24,12 @@ const inputVariants = {
 
 const initialFormState = {
   // Section A: General Information
-  "Full Name": "",
+  "Full_Name": "",
   "Age": "",
   "Sex": "",
   "Date of Assessment": "",
   "Contact Information": "",
-  Occupation: "",
+  "Occupation": "",
   "Emergency Contact": "",
   "FamilyType":"",
   "FamilyMember":"",
@@ -100,11 +100,11 @@ const MoodMigoQuestionnaire = () => {
 
   // Section B: Mental Health History
   "diagnosed",
-  "treatment",
-  "treatmentType",
-  "provider",
-  "hospitalized",
-  "hospitalReason",
+  // "treatment",
+  // "treatmentType",
+  // "provider",
+  // "hospitalized",
+  // "hospitalReason",
 
   // Section C: Symptom Checklist (Past 2 Weeks)
   "Feeling down, depressed, or hopeless",
@@ -121,14 +121,14 @@ const MoodMigoQuestionnaire = () => {
   // Section D: Behavioral Patterns
   "dailyFunction",
   "substanceUse",
-  "substanceDetails",
+  // "substanceDetails",
   "lifeChanges",
-  "changeDetails",
+  // "changeDetails",
 
   // Section E: Social & Emotional Well-being
   "connectedness",
   "safety",
-  "safetyDetails",
+  
   "hobbies",
   "copingStrategies"
 ];
@@ -155,6 +155,7 @@ setIsSubmitted(true);
       
       const cleanedForm = {
         ...form,
+        "Full Name":form.Full_Name,
         CopingStrategies: copingStrategies,
         "Feeling down, depressed, or hopeless": truncate(form["Feeling down, depressed, or hopeless"]),
         "Little interest or pleasure in doing things": truncate(form["Little interest or pleasure in doing things"]),
@@ -185,9 +186,9 @@ setIsSubmitted(true);
     };
     
     const geminiScoreRaw = await getScore(JSON.stringify(form));
-    const geminiScore = geminiScoreRaw.totalScore;
+    const geminiScore = geminiScoreRaw.total_score;
     setinterpretation(geminiScoreRaw.interpretation)
-    console.log("gemini",geminiScore)
+    console.log("gemini",geminiScoreRaw)
     setScore(geminiScore);
     console.log("StoreScore",score)
     const today = new Date();
@@ -290,14 +291,16 @@ setIsSubmitted(true);
         const oldScore = targetattributesResponse.documents[0].Score
         const timesFilled = targetattributesResponse.documents[0].NumberOfTimesFilled
           const newScoreValue = Math.max(0, Math.min(50, parseInt(oldScore - geminiScore )));
+          console.log(targetattributesResponse.documents,",",oldScore,newScoreValue)
 
         const updateattributesResponse = await db.UsersAttributes.update(targetDocument,{
-          Score:parseInt(oldScore),
+          Score:parseInt(geminiScore),
           newScore: newScoreValue,
           lastUpdatedDate:formattedDate,
           NumberOfTimesFilled:parseInt(timesFilled)+1
         })
         // console.log(updateattributesResponse.documents)
+        console.log(oldScore)
       }
       
     })
@@ -399,12 +402,12 @@ const handleChange = (e) => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  "Full Name (Optional)",
+                  "Full_Name (Optional)",
                   "Age",
                   "Sex",
                   "Date of Assessment",
                   "Contact Information",
-                  "Occupation / Education",
+                  "Occupation",
                   "Emergency Contact",
                   "FamilyType"
                 ].map((label) => (
@@ -442,23 +445,27 @@ const handleChange = (e) => {
                 </select>
               </div>
 
-              
-
-              
-              <motion.div variants={inputVariants} initial="initial" animate="animate" className="mb-4">
-                <input
-                  type="text"
-                  name="FamilyMember"
-                  placeholder="Any Family Member Ever diagnosed with a mental health condition Please Fill No is not"
-                  value={form.FamilyMember}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-400 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
-                  onChange={handleChange}
-                />
-              </motion.div>
-              
-              
-              
             </section>
+              <motion.div variants={inputVariants} initial="initial" animate="animate" className="mb-4">
+                 <section>
+              
+              <div className="mb-4">
+                <label className="block text-gray-900 mb-2">Any family member ever diagnosed with a mental health condition?</label>
+                <select
+                  name="FamilyMember"
+                  value={form.FamilyMember}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-400 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
+                >
+                  <option value="">Select</option>
+                  <option>Yes</option>
+                  <option>No</option>
+                </select>
+              </div>
+
+            </section>
+                
+              </motion.div>
 
             {/* Section C: Symptom Checklist */}
             <section>
@@ -603,8 +610,8 @@ const handleChange = (e) => {
                   <option>No</option>
                 </select>
               </div>
-              <motion.div variants={inputVariants} initial="initial" animate="animate" className="mb-4">
-                <input
+              {/* <motion.div variants={inputVariants} initial="initial" animate="animate" className="mb-4"> */}
+                {/* <input
                   type="text"
                   name="safetyDetails"
                   placeholder="If no, explain"
@@ -612,7 +619,7 @@ const handleChange = (e) => {
                   className="w-full px-4 py-3 rounded-xl border border-gray-400 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
                   onChange={handleChange}
                 />
-              </motion.div>
+              </motion.div> */}
 
               <div className="mb-4">
                 <label className="block text-gray-900 mb-2">Able to enjoy hobbies?</label>

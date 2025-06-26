@@ -80,7 +80,7 @@ const fetchUserData = async () => {
 
     if (scoreResponse.documents.length > 0) {
       const doc = scoreResponse.documents[0];
-      setScore(doc.newScore);
+      setScore(doc.Score);
       setNumberOfTimes(doc.NumberOfTimesFilled);
       setUpdateDate(doc.lastUpdatedDate);
     } else {
@@ -96,12 +96,40 @@ const fetchUserData = async () => {
       [Query.equal("ClientId", tempUser.$id)]
     );
 
-    if (proResponse.documents.length > 0) {
-      setProfessionals(proResponse.documents);
-    } else {
-      setUrl("");
-    }
+    const today = new Date().toISOString().split('T')[0];
 
+const updatedProfessionals = [];
+
+// const today = new Date().toISOString().split('T')[0];
+
+if (proResponse.documents.length > 0) {
+  const fetchAndModify = proResponse.documents
+    .filter(element => element.PreferedDate.split('T')[0] === today)
+    .map(async (element) => {
+      console.log(element)
+      const profDataClient = new Client()
+        .setEndpoint("https://fra.cloud.appwrite.io/v1")
+        .setProject("6826c7d8002c4477cb81");
+
+      const profData = new Databases(profDataClient);
+      const profAttributes = await profData.listDocuments(
+        '6826d3a10039ef4b9444',
+        '6826dd9700303a5efb90',
+        [Query.equal('id', element.Mentorid)]
+      );
+
+      return {
+        ...element,
+        MentorName: profAttributes.documents[0]?.username || "Unknown",
+        Mentorprofilepic:profAttributes.documents[0]?.profilephoto||''
+      };
+    });
+
+  const updatedProfessionals = await Promise.all(fetchAndModify);
+  setProfessionals(updatedProfessionals);
+} else {
+  setUrl(""); // or your fallback logic
+}
     const blogResponse = await db.blog.list([]);
     setNumberOfBlogs(blogResponse.total ?? 0);
 
@@ -109,6 +137,7 @@ const fetchUserData = async () => {
     setUser(null);
     setScore(null);
   } finally {
+    //console.log("SCore",score)
     setIsLoading(false);
   }
 };
@@ -145,7 +174,7 @@ const fetchVerifiedSessions = async () => {
 };
 const handleProfileImageChange = (e) => {
     const file = e.target.files[0];
-    console.log(file)
+    //console.log(file)
     if (file) {
       setProfileImageFile(file);
       setProfilePhotoPreview(URL.createObjectURL(file)); // Create a preview URL
@@ -156,7 +185,7 @@ const handleProfileImageChange = (e) => {
   const file = e.target.files[0];
   if (file) {
     setCoverImageFile(file); // Assuming you have this in useState
-    console.log("Selected file:", coverImageFile);
+    //console.log("Selected file:", coverImageFile);
   }
 };
 
@@ -313,7 +342,7 @@ useEffect(() => {
 }, []); // Add `user.id` as a dependency
 
 useEffect(() => {
-  console.log(user.profilepicture)
+  //console.log(user.profilepicture)
 }, [user.profilepicture])
 
 
@@ -369,7 +398,7 @@ const todayFormatted = date.toLocaleString("en-US", {
     type="file"
     accept="image/*"
     onChange={(e) => {
-      console.log("Cover image changed");
+      //console.log("Cover image changed");
       handleCoverImageChange(e); // this should set coverImageFile
     }}
     disabled={uploadingCover}
@@ -414,7 +443,7 @@ const todayFormatted = date.toLocaleString("en-US", {
     type="file"
     accept="image/*"
     onChange={(e) => {
-      console.log("Profile image changed");
+      //console.log("Profile image changed");
       handleProfileImageChange(e); // this should set profileImageFile
     }}
     disabled={uploadingProfile}
@@ -522,7 +551,7 @@ const todayFormatted = date.toLocaleString("en-US", {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-gradient-to-r from-purple-200 to-blue-200 text-gray-800 px-5 py-3 rounded-2xl text-sm font-semibold shadow-sm border border-purple-300">
                   <div className="flex items-center gap-3">
                     <span role="img" aria-label="calendar">📅</span>
-                    <p>Please complete the questionnaire again after 42 days to track your progress.</p>
+                    <p>Please complete the questionnaire again after 15 days to track your progress.</p>
                   </div>
                   <div className="bg-white/70 px-4 py-2 rounded-full border border-purple-300 text-xs">
                     Last Updated: {updateDate || 'N/A'}
@@ -554,11 +583,11 @@ const todayFormatted = date.toLocaleString("en-US", {
                         className="bg-gray-50 p-6 rounded-xl border border-gray-200 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-center gap-5">
-                          <Headphones className="w-7 h-7 text-purple-600" />
+                          <img src={session.Mentorprofilepic}className="w-7 h-7 text-purple-600" />
                           <div>
-                            <p className="text-lg font-semibold text-gray-900">{session.name}</p>
-                            <p className="text-sm text-gray-600">{session.date}</p>
-                            <p className="text-sm text-gray-600">{session.time}</p>
+                            <p className="text-lg font-semibold text-gray-900">{session.MentorName}</p>
+                            <p className="text-sm text-gray-600">{session.PreferedDate.split('T')[0]}</p>
+                            <p className="text-sm text-gray-600">{session.PreferedDate.split('T')[1]}</p>
                           </div>
                         </div>
                         <button

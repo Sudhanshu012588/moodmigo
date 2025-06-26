@@ -1,522 +1,210 @@
+// ✅ Rewritten and Optimized ProfessionalDashboard
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  Users, UserPlus, MessageSquare, Calendar, Bell, CheckCircle, Clock,
-} from 'lucide-react';
+import { Users, UserPlus, MessageSquare, Calendar, Camera } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useStore } from '../store/store';
 import MoodMigoLoading from '../components/Loading';
-import { Query } from 'appwrite';
-import { toast } from 'react-toastify';
-import { Account, Client, Databases, ID } from 'appwrite';
+import { Query, Client, Account, Databases } from 'appwrite';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { use } from 'react';
+import { toast } from 'react-toastify';
 
 const ProfessionalDashboard = () => {
   const navigate = useNavigate();
   const user = useStore(state => state.User);
   const setUser = useStore(state => state.setUser);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [sessionArray, setSessionsArray] = useState([]);
-  const [confirmedAppointments, setConfirmedAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sessions, setSessions] = useState([]);
+  const [meetings, setMeetings] = useState([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
+  const [showUploadBtn, setShowUploadBtn] = useState(false);
   const [rescheduleId, setRescheduleId] = useState(null);
   const [rescheduleDate, setRescheduleDate] = useState(new Date());
-  const [meetings,setMeetings]=useState([])
-  const [link,setLink]=useState("")
-  const [clientname, setClientname] = useState('')
 
-  const today = new Date();
-const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
-
-
-useEffect(() => {
-  const runCleanup = async () => {
-    const formattedDate = new Date().toLocaleDateString("en-GB");
-
-    const mainClient = new Client()
-      .setEndpoint("https://fra.cloud.appwrite.io/v1")
-      .setProject("6826c7d8002c4477cb81");
-    const mainDB = new Databases(mainClient);
-
-    const sessionClient = new Client()
-      .setEndpoint("https://fra.cloud.appwrite.io/v1")
-      .setProject("6820683500148a9573af");
-    const sessionDB = new Databases(sessionClient);
-
-    const deletemeeting = async (id) => {
+  useEffect(() => {
+    const loadDashboard = async () => {
       try {
-        await sessionDB.deleteDocument(
-          "6820add100102346d8b7",
-          "68280ac50027ed33d5d2",
-          id
-        );
-        const response = await sessionDB.listDocuments(
-          "6820add100102346d8b7",
-          "68280ac50027ed33d5d2",
-          [Query.equal('Mentorid', user.id)]
-        );
-        
-        setSessionsArray(response.documents.filter(doc => doc.confirmation === false));
-        setConfirmedAppointments(response.documents.filter(doc => doc.confirmation === true));
-        console.log("Deleted session:", id);
-      } catch (error) {
-        console.error("Error deleting session:", error);
-      }
-    };
-
-    const deleteSessionrequest = async (id) => {
-      try {
-        await mainDB.deleteDocument(
-          "6826d3a10039ef4b9444",
-          "68275039000cb886ff5c",
-          id
-        );
-        console.log("Deleted main record:", id);
-      } catch (error) {
-        console.error("Error deleting main record:", error);
-      }
-    };
-
-    meetings.forEach((meeting) => {
-      // Convert both dates to Date objects to compare
-      const meetingDate = new Date(meeting.date);
-      const today = new Date();
-
-      if (meetingDate < today) {
-        deletemeeting(meeting.$id);
-        deleteSessionrequest(meeting.$id);
-      }
-    });
-  };
-
-  if (meetings?.length > 0) {
-    runCleanup();
-  }
-}, [meetings]);
-
-// Fetch logged-in professional user info
-useEffect(() => {
-  const fetchProfessionalData = async () => {
-      setIsLoading(true);
-      
-      try {
-        const client = new Client()
-        .setEndpoint("https://fra.cloud.appwrite.io/v1")
-        .setProject("6826c7d8002c4477cb81");
-        
+        const client = new Client().setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6826c7d8002c4477cb81");
         const account = new Account(client);
-        const tempUser = await account.get('current');
+        const db = new Databases(client);
 
-        setUser({ ...tempUser, isLoggedIn: true, name: tempUser.name, id: tempUser.$id });
+        const currentUser = await account.get("current");
+        const profAttrs = await db.listDocuments("6826d3a10039ef4b9444", "6826dd9700303a5efb90", [
+          Query.equal("id", currentUser.$id)
+        ]);
+
+        const userData = {
+          ...currentUser,
+          isLoggedIn: true,
+          profilepicture: profAttrs.documents[0]?.profilephoto || '',
+          id: currentUser.$id
+        };
+
+        setUser(userData);
+
+        const sessionRes = await db.listDocuments("6826d3a10039ef4b9444", "68275039000cb886ff5c", [
+          Query.equal("Mentorid", currentUser.$id),
+          Query.equal("AppointmentVerified", false)
+        ]);
+        setSessions(sessionRes.documents.filter(doc => doc.PaymentVerified === true));
+
+        const meetRes = await db.listDocuments("6826d3a10039ef4b9444", "68275039000cb886ff5c", [
+          Query.equal("Mentorid", currentUser.$id),
+          Query.equal("AppointmentVerified", true)
+        ]);
+        setMeetings(meetRes.documents);
+
       } catch (error) {
-        toast.error("Professional dashboard data fetch failed");
-        setUser(null);
+        console.error(error);
+        toast.error("Error loading dashboard");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchProfessionalData();
+    loadDashboard();
   }, [setUser]);
 
-  // Fetch sessions and confirmed appointments
-  useEffect(() => {
-    if (!user?.id) return;
+  const handleProfileUpload = async () => {
+    if (!profileImageFile) return;
+    setUploadingProfile(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", profileImageFile);
+      formData.append("upload_preset", "preset");
 
-    const fetchSessionRequests = async () => {
-      try {
-        const client = new Client()
-        .setEndpoint("https://fra.cloud.appwrite.io/v1")
-        .setProject("6820683500148a9573af");
-        
-        const databases = new Databases(client);
+      const res = await fetch("https://api.cloudinary.com/v1_1/dzczys4gk/image/upload", { method: 'POST', body: formData });
+      const data = await res.json();
 
-        const response = await databases.listDocuments(
-          "6820add100102346d8b7",
-          "68280ac50027ed33d5d2",
-          [Query.equal('Mentorid', user.id)]
-        );
-        
-        setSessionsArray(response.documents.filter(doc => doc.Verified === true));
-        setConfirmedAppointments(response.documents.filter(doc => doc.confirmation === true));
-      } catch (error) {
-          toast.error("Server error fetching sessions");
+      if (data.secure_url) {
+        const client = new Client().setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6826c7d8002c4477cb81");
+        const db = new Databases(client);
+        const userDoc = await db.listDocuments("6826d3a10039ef4b9444", "6826dd9700303a5efb90", [Query.equal('id', user.id)]);
+        const docId = userDoc.documents[0]?.$id;
+
+        if (docId) {
+          await db.updateDocument("6826d3a10039ef4b9444", "6826dd9700303a5efb90", docId, { profilephoto: data.secure_url });
+          setUser({ ...user, profilepicture: data.secure_url });
+          toast.success("Profile updated!");
         }
-      };
-      
-      
-      const fetchMeetings = async () => {
-        const client = new Client()
-        .setEndpoint("https://fra.cloud.appwrite.io/v1")
-        .setProject("6826c7d8002c4477cb81");
-
-        const databases = new Databases(client);
-        
-        try {
-          const newsessions = await databases.listDocuments(
-            "6826d3a10039ef4b9444",
-          "68275039000cb886ff5c",
-          [Query.equal("Mentorid", user.id)]
-        );
-        setMeetings(newsessions.documents);
-        console.log(newsessions.documents);
-      } catch (error) {
-        console.error("Error fetching meetings:", error);
       }
-    };
-    
-      fetchSessionRequests();
-      fetchMeetings();
-      
-    }, [user]);
-    
-    
-    
-    // Confirm a session and create appointment
-    const handleConfirm = async (sessionId) => {
-      try {
-        const client = new Client()
-        .setEndpoint("https://fra.cloud.appwrite.io/v1")
-        .setProject("6820683500148a9573af");
+    } catch (err) {
+      toast.error("Upload failed");
+    } finally {
+      setUploadingProfile(false);
+      setShowUploadBtn(false);
+    }
+  };
 
-      const databases = new Databases(client);
-
-      await databases.updateDocument(
-        "6820add100102346d8b7",
-        "68280ac50027ed33d5d2",
-        sessionId,
-        { confirmation: true }
-      );
-
+  const handleConfirm = async (session) => {
+    try {
+      const client = new Client().setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6826c7d8002c4477cb81");
+      const db = new Databases(client);
+      await db.updateDocument("6826d3a10039ef4b9444", "68275039000cb886ff5c", session.$id, {
+        AppointmentVerified: true,
+        meetingurl: `https://meet.jit.si/${session.$id}`
+      });
       toast.success("Session confirmed!");
-
-      // Also create appointment in professional project
-      const proClient = new Client()
-      .setEndpoint("https://fra.cloud.appwrite.io/v1")
-      .setProject("6826c7d8002c4477cb81");
-      
-      const profDatabases = new Databases(proClient);
-      
-      const session = sessionArray.find(s => s.$id === sessionId);
-      const roomName = `${sessionId}`;
-      const newmeetingUrl = `https://meet.jit.si/${roomName}`;
-      if (session) {
-        await profDatabases.createDocument(
-          "6826d3a10039ef4b9444",
-          "68275039000cb886ff5c",
-          ID.unique(),
-          {
-            Mentorid: session.Mentorid,
-            ClientId: session.Clientid,
-            date: session.prefferedDateTime,
-            meetingurl: newmeetingUrl,
-            username:session.username
-          }
-        );
-
-        await databases.deleteDocument(
-        "6820add100102346d8b7",
-        "68280ac50027ed33d5d2",
-        sessionId
-      );
-        toast.success("Appointment created!");
-
-      }
-      
-      // Update local state: move session from unconfirmed to confirmed
-      setSessionsArray(prev => prev.filter(s => s.$id !== sessionId));
-      
-      if (session) {
-        setConfirmedAppointments(prev => [...prev, { ...session, confirmation: true }]);
-      }
-      
-    } catch (error) {
-      toast.error("Failed to confirm session");
-      console.error(error);
+      window.location.reload();
+    } catch (err) {
+      toast.error("Confirmation failed");
     }
   };
-  
-  // Show DatePicker for rescheduling
-  const handleShowReschedule = (id, currentDate) => {
-    setRescheduleId(id);
-    setRescheduleDate(new Date(currentDate));
-  };
 
-  // Handle date change and update document
-  const handleDateChange = async (date) => {
-    if (!(date instanceof Date)) {
-      date = new Date(date);
-    }
-    setRescheduleDate(date);
-    
-    if (!rescheduleId) return;
-    
-    const dateStr = date.toLocaleDateString();
-    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    const client = new Client()
-    .setEndpoint("https://fra.cloud.appwrite.io/v1")
-    .setProject("6820683500148a9573af");
-    
-    const databases = new Databases(client);
-    
+  const handleReschedule = async () => {
+    if (!rescheduleId || !rescheduleDate) return;
     try {
-      await databases.updateDocument(
-        "6820add100102346d8b7",
-        "68280ac50027ed33d5d2",
-        rescheduleId,
-        {
-          prefferedDateTime: `${dateStr}`
-        }
-      );
-
+      const client = new Client().setEndpoint("https://fra.cloud.appwrite.io/v1").setProject("6826c7d8002c4477cb81");
+      const db = new Databases(client);
+      await db.updateDocument("6826d3a10039ef4b9444", "68275039000cb886ff5c", rescheduleId, {
+        PreferedDate: rescheduleDate
+      });
       toast.success("Rescheduled successfully");
-      
-      // Update local state with new date/time
-      setSessionsArray(prev =>
-        prev.map(s => s.$id === rescheduleId ? { ...s, date: dateStr, time: timeStr } : s)
-      );
-      
-      setRescheduleId(null); // close datepicker
-    } catch (error) {
-      console.error("Error updating document:", error);
-      toast.error("Failed to reschedule.");
+      window.location.reload();
+    } catch (err) {
+      toast.error("Reschedule failed");
     }
   };
 
-  const handleDelete = async (documentId) => {
-    if (!window.confirm("Are you sure you want to delete this session?")) {
-      return; // User cancelled deletion
-    }
-    
-    try {
-      const client = new Client()
-      .setEndpoint("https://fra.cloud.appwrite.io/v1")
-      .setProject("6820683500148a9573af"); // Use the correct project ID
-      
-      const databases = new Databases(client);
-      
-      await databases.deleteDocument(
-        "6820add100102346d8b7",   // databaseId
-        "68280ac50027ed33d5d2",  // collectionId
-        documentId               // the $id of the document to delete
-      );
-      
-      toast.success("Session deleted successfully!");
-      
-      // Remove the deleted session from state to update UI
-      setSessionsArray(prev => prev.filter(s => s.$id !== documentId));
-      setConfirmedAppointments(prev => prev.filter(c => c.$id !== documentId));
-      
-    } catch (error) {
-      console.error("Failed to delete document:", error);
-      toast.error("Failed to delete the session.");
-    }
-  };
+  if (loading) return <MoodMigoLoading />;
 
-  useEffect(() => {
-   const getAppointments = async () => {
-      const client = new Client()
-        .setEndpoint("https://fra.cloud.appwrite.io/v1")
-        .setProject("6826c7d8002c4477cb81");
-
-      const database = new Databases(client);
-
-      try {
-        const response = await database.listDocuments(
-          "6826d3a10039ef4b9444",
-          "68275039000cb886ff5c",
-          [Query.equal("Mentorid", user.id)]
-        );
-
-        const date = new Date();
-        const formattedDateTime = date.toLocaleString("en-US", {
-          month: "numeric",
-          day: "numeric",
-          year: "numeric",
-        }).replace(",", ""); // "5/24/2025 10:27 PM"
-        console.log(formattedDateTime)
-        const todaysAppointments = response.documents.filter((appointment) =>
-          appointment.date?.includes(formattedDateTime)
-        );
-          setConfirmedAppointments(todaysAppointments)
-        
-        if (todaysAppointments.length === 0) {
-          toast.info("No appointment today");
-        }
-
-      } catch (error) {
-        toast.error("Failed to fetch appointments");
-        console.error(error);
-      }
-    };
-
-    getAppointments()
-    console.log("Todays",meetings)
-  },[])
-  
-  const handleJoinMeeting = (id) => {
-    // const roomName = `${ID.unique()}`;
-    // const meetingUrl = `https://meet.jit.si/${roomName}`;
-    window.open(id, "_blank");
-  };
-  
-  if (isLoading) return <MoodMigoLoading />;
-
-  
   return (
     <>
       <Navbar />
-      <main className="min-h-screen p-6 sm:p-8 lg:p-12 max-w-7xl mx-auto">
-        <motion.div initial="hidden" animate="visible" className="space-y-10">
-          <motion.header className="flex flex-col md:flex-row justify-between items-start md:items-center">
+      <main className="max-w-5xl mx-auto py-8 px-4">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
             <div>
-              <h1 className="text-4xl font-extrabold text-indigo-900">
-                Professional, <span className="text-indigo-700">{user.name}</span>!
-              </h1>
-              <p className="mt-2 text-gray-600 text-lg">Your professional dashboard at a glance.</p>
+              <label htmlFor="profile-upload" className="relative cursor-pointer">
+                <img src={user.profilepicture || '/default-profile.jpg'} alt="Profile" className="w-28 h-28 rounded-full border" />
+                <Camera className="absolute bottom-1 right-1 bg-indigo-600 text-white p-1 rounded-full w-6 h-6" />
+              </label>
+              <input id="profile-upload" type="file" accept="image/*" className="hidden" onChange={(e) => {
+                setProfileImageFile(e.target.files[0]);
+                setShowUploadBtn(true);
+              }} />
+              {showUploadBtn && (
+                <button onClick={handleProfileUpload} disabled={uploadingProfile} className="mt-2 bg-indigo-600 text-white py-1 px-4 rounded">
+                  {uploadingProfile ? "Uploading..." : "Upload"}
+                </button>
+              )}
+              <h1 className="text-3xl font-bold mt-4">Welcome, {user.name}</h1>
             </div>
-            <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <button className="relative bg-indigo-100 text-indigo-600 hover:bg-indigo-200 rounded-full p-3">
-                <Bell className="w-6 h-6" />
-                {unreadMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 px-2 py-1 text-xs font-bold text-red-100 bg-red-600 rounded-full">
-                    {unreadMessages}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => navigate('/clients/add')}
-                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-full"
-              >
-                <UserPlus className="inline w-5 h-5 mr-2" />
-                Add Client
-              </button>
-            </div>
-          </motion.header>
+            <button onClick={() => navigate('/clients/add')} className="mt-4 sm:mt-0 bg-green-600 text-white py-2 px-4 rounded-full">
+              <UserPlus className="inline w-4 h-4 mr-2" /> Add Client
+            </button>
+          </div>
 
-          <motion.section className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Users,
-                iconBg: "bg-indigo-100 text-indigo-500",
-                count: sessionArray.length,
-                label: "Requested Appointments",
-              },
-              {
-                icon: Calendar,
-                iconBg: "bg-blue-100 text-blue-500",
-                count: confirmedAppointments.length,
-                label: "Upcoming Appointments",
-              },
-              {
-                icon: MessageSquare,
-                iconBg: "bg-green-100 text-green-500",
-                count: unreadMessages,
-                label: "Unread Messages",
-              },
-            ].map(({ icon: Icon, iconBg, count, label }, i) => (
-              <div key={i} className="bg-white border rounded-xl p-6 flex items-center space-x-5 shadow-md">
-                <div className={`${iconBg} rounded-md p-4`}>
-                  <Icon className="w-7 h-7" />
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+            {[{ label: 'Requested Sessions', value: sessions.length, Icon: Users }, { label: 'Meetings', value: meetings.length, Icon: Calendar }, { label: 'Unread Messages', value: unreadMessages, Icon: MessageSquare }].map(({ label, value, Icon }, i) => (
+              <div key={i} className="bg-white shadow rounded-lg p-4 flex items-center space-x-4">
+                <Icon className="w-6 h-6 text-indigo-600" />
                 <div>
-                  <p className="text-2xl font-bold">{count}</p>
-                  <p className="text-gray-500">{label}</p>
+                  <p className="text-2xl font-bold">{value}</p>
+                  <p className="text-gray-600 text-sm">{label}</p>
                 </div>
               </div>
             ))}
-          </motion.section>
+          </div>
 
-          {/* Unconfirmed session requests */}
-          <motion.section>
-            <h2 className="text-xl font-semibold mb-4">Session Requests</h2>
-            {sessionArray.length === 0 ? (
-              <p className="text-gray-500">No session requests at the moment.</p>
-            ) : (
-              sessionArray.map(({ $id, username, prefferedDateTime,meetingUrl }) => (
-                <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
-                  <div>
-                    <p><span className="font-semibold">Client:</span> {username}</p>
-                    <p><span className="font-semibold">Date:</span> {prefferedDateTime}</p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <button
-                      onClick={() => handleConfirm($id)}
-                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                    >
-                      Confirm
-                    </button>
-                    <button
-                      onClick={() => handleShowReschedule($id, prefferedDateTime)}
-                      className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-                    >
-                      Reschedule
-                    </button>
-                    <button
-                      onClick={() => handleDelete(meetingUrl)}
-                      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-
-            {/* Reschedule DatePicker */}
-            {rescheduleId && (
-              <div className="mb-6">
-                <DatePicker
-                  selected={rescheduleDate}
-                  onChange={handleDateChange}
-                  inline
-                  showTimeSelect
-                  dateFormat="MMMM d, yyyy h:mm aa"
-                  minDate={new Date()}
-                />
-                <button
-                  onClick={() => setRescheduleId(null)}
-                  className="mt-2 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                >
-                  Cancel
-                </button>
+          <h2 className="text-xl font-semibold mb-3">Pending Session Requests</h2>
+          {sessions.map(session => (
+            <div key={session.$id} className="bg-white p-4 rounded shadow flex justify-between items-center mb-3">
+              <div>
+                <p className="font-medium">{session.username}</p>
+                <p className="text-sm text-gray-500">{new Date(session.PreferedDate).toLocaleString()}</p>
               </div>
-            )}
-          </motion.section>
+              <div className="flex gap-2">
+                <button onClick={() => handleConfirm(session)} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Confirm</button>
+                <button onClick={() => { setRescheduleId(session.$id); setRescheduleDate(new Date()); }} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Reschedule</button>
+              </div>
+            </div>
+          ))}
 
-          {/* Confirmed Appointments */}
-         <motion.section>
-  <h2 className="text-xl font-semibold mb-4">Confirmed Appointments</h2>
-  {meetings.length === 0 ? (
-    <p className="text-gray-500">No confirmed appointments.</p>
-  ) : (
-    meetings.map(({ $id, username, date, meetingurl }) => (
-      <div key={$id} className="flex items-center justify-between bg-white shadow rounded p-4 mb-4">
-        <div>
-          <p><span className="font-semibold">Client:</span> {username}</p>
-          <p><span className="font-semibold">Date:</span> {date}</p>
-        </div>
-        {date == date.toLocaleString("en-US", {
-          month: "numeric",
-          day: "numeric",
-          year: "numeric",
-        }).replace(",", "") && (
-          <button
-            onClick={() => handleJoinMeeting(meetingurl)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-          >
-            Join Meeting
-          </button>
-        )}
-      </div>
-    ))
-  )}
-</motion.section>
+          {rescheduleId && (
+            <div className="mt-4">
+              <DatePicker selected={rescheduleDate} onChange={setRescheduleDate} inline showTimeSelect dateFormat="Pp" minDate={new Date()} />
+              <button onClick={handleReschedule} className="mt-2 bg-indigo-600 text-white py-1 px-4 rounded">Save</button>
+              <button onClick={() => setRescheduleId(null)} className="ml-2 bg-gray-300 py-1 px-4 rounded">Cancel</button>
+            </div>
+          )}
+
+          <h2 className="text-xl font-semibold mt-10 mb-3">Confirmed Meetings</h2>
+          {meetings.length === 0 ? <p className="text-gray-500">No meetings confirmed yet.</p> : meetings.map(m => (
+            <div key={m.$id} className="bg-white p-4 rounded shadow flex justify-between items-center mb-3">
+              <div>
+                <p className="font-medium">{m.username}</p>
+                <p className="text-sm text-gray-500">{new Date(m.PreferedDate).toLocaleString()}</p>
+              </div>
+              <button onClick={() => window.open(m.meetingurl, '_blank')} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Join</button>
+            </div>
+          ))}
         </motion.div>
       </main>
     </>

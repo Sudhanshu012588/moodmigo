@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react'; // icons for menu
 import { useStore } from '../store/store'; // global state management
@@ -27,6 +27,15 @@ const Navbar = () => {
       element?.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+
+  useEffect(() => {
+    if(!isLoggedIn){navigate('/login')
+      if(type == "Client"){
+      account.deleteSession('current')}
+    }
+  }, [])
+  
 
   const userType = localStorage.getItem('type');
   // Handle navigation
@@ -124,7 +133,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex justify-between items-center px-6 py-4 mb-1  bg-white sticky top-0 z-50">
+    <nav className="flex justify-between items-center px-6 py-4 mb-1  bg-white sticky top-0 z-50 ">
       <div
         className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-500 text-transparent bg-clip-text cursor-pointer"
         onClick={handleMoodMigoClick} // Use the new handler

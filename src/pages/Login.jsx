@@ -44,7 +44,7 @@ const Login = () => {
           password: form.password,
           isLoggedIn: true
         });
-        console.log(user)
+        //console.log(user)
         toast.success("Login successful!");
         navigate("/dashboard");
       } else {
@@ -59,7 +59,7 @@ const Login = () => {
         const { jwt } = await profAccount.createJWT(); // 🔄 Use correct profAccount
         localStorage.setItem("token", jwt);
         // const proffesionaluser = await clientAccount.get();
-        // console.log(proffesionaluser) 
+        // //console.log(proffesionaluser) 
 
         toast.success("Login successful!");
         navigate("/mentorsdashboard");
