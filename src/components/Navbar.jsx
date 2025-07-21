@@ -30,7 +30,7 @@ const Navbar = () => {
 
 
   useEffect(() => {
-    if(!isLoggedIn){navigate('/login')
+    if(!isLoggedIn){
       if(type == "Client"){
       account.deleteSession('current')}
     }
