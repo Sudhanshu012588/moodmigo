@@ -35,3 +35,5 @@ const MoodMigoLoading = () => {
 };
 
 export default MoodMigoLoading;
+
+
