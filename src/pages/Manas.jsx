@@ -219,7 +219,7 @@ const ManasChatbot = () => {
             >
               <Send className="w-6 h-6" />
             </motion.button>
-            <motion.button
+            {/* <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={createPersona}
@@ -228,7 +228,7 @@ const ManasChatbot = () => {
               className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg flex items-center justify-center transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Video className='w-6 h-6 '/>
-            </motion.button>
+            </motion.button> */}
               
           </div>
         </div>
