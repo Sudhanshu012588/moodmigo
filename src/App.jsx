@@ -56,7 +56,7 @@ const App = () => {
             <Route path="/sessionbook" element={<Session/>}/>
             <Route path="/premium" element={<PaymentPortal/>}/>
             <Route path='/forgot' element={<ForgotPassword/>}/>
-            <Route path='/set-new-password' element={<ResetPassword/>}/>
+            <Route path='/reset-password' element={<ResetPassword/>}/>
           </Routes>
       </BrowserRouter>
           </>
