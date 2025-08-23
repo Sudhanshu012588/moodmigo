@@ -16,7 +16,8 @@ import MoodMigoQuestionnaire from "./pages/Questions";
 import JournalEntry from "./pages/JournalEntry";
 import PaymentPortal from "./pages/Premium.jsx"
 import Session from "./pages/Session.jsx";
-
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/SetnewPassword.jsx"
 const App = () => {
   const type = useStore((state)=>state.type)
 
@@ -54,6 +55,8 @@ const App = () => {
             <Route path="/signup" element={<Signup/>}/>
             <Route path="/sessionbook" element={<Session/>}/>
             <Route path="/premium" element={<PaymentPortal/>}/>
+            <Route path='/forgot' element={<ForgotPassword/>}/>
+            <Route path='/set-new-password' element={<ResetPassword/>}/>
           </Routes>
       </BrowserRouter>
           </>
