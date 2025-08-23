@@ -24,9 +24,9 @@ function ForgotPassword() {
     try {
       await account.createRecovery(
         email,
-        "https://moodmigo.com/reset-password" // change to your frontend reset page
+        "https://moodmigo.com/reset-password" 
       );
-      toast.success("Password reset email sent!");
+      toast.success("Password reset email sent to your emailID!");
       setEmail(""); // clear input
     } catch (err) {
       toast.error(err.message || "Something went wrong");
