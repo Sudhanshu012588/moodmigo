@@ -3,6 +3,8 @@ import cors from "cors"
 import bcrypt from "bcrypt"
 import {connectDB} from "./DB/DBconfig.js"
 import Chat from "./model/ManarahChat.js"
+import { Resend } from 'resend';
+
 const app = express();
 
 app.use(cors());
@@ -65,6 +67,34 @@ app.post('/manarah/get',async(req,res)=>{
   
 })
 
+app.post("/send-email", async (req, res) => {
+  const { to, subject, text } = req.body;
+
+  if (!to || !subject || !text) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const resend = new Resend("re_hvorSSv3_DbeQK4FL4rbL4sEmfx34hXau"); // your API key
+
+    const { data, error } = await resend.emails.send({
+      from: "support@moodmigo.com", // needs to be a verified domain in Resend
+      to, // single email or array of emails
+      subject,
+      text,
+    });
+
+    if (error) {
+      console.error("Resend error:", error);
+      return res.status(500).json({ success: false, error });
+    }
+
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    console.error("Error sending email:", err);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
 
 app.listen("5000",(req,res)=>{
     console.log("Server running on port 5000");

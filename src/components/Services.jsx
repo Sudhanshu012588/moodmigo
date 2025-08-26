@@ -1,12 +1,13 @@
 import React from "react";
-
+import { useNavigate } from "react-router-dom";
+import { useStore } from "../store/store";
 const services = [
   {
     title: "Online Counselling Sessions",
     description:
       "Connect with certified psychiatrists from the comfort of your home for personalized mental health guidance.",
     icon: "🎧",
-    link: "Learn More",
+    link: `/sessions`,
     premium: false,
     borderColor: "border-violet-400",
   },
@@ -15,7 +16,7 @@ const services = [
     description:
       "Write and reflect on your thoughts with our digital journaling tool designed to track your mental wellness journey.",
     icon: "📔",
-    link: "Learn More",
+    link: `/journal`,
     premium: "Learn More",
     borderColor: "border-violet-400",
   },
@@ -24,7 +25,7 @@ const services = [
     description:
       "Our multilingual AI chatbot provides support through text or voice chat, available for 3 hours daily with premium access.",
     icon: "🤖",
-    link: "Learn More",
+    link: "/chat",
     premium: "Learn More",
     borderColor: "border-green-200",
   },
@@ -33,13 +34,15 @@ const services = [
     description:
       "Join a supportive community where you can share experiences, discuss challenges, and connect with others on similar journeys.",
     icon: "👥",
-    link: "Learn More",
+    link: "/blog",
     premium: "Learn More",
     borderColor: "border-violet-400",
   },
 ];
 
 export default function ServicesSection() {
+  const navigator = useNavigate()
+  const id = useStore((state)=>state.User.id)
   return (
     <section className="bg-[#F5F5FC] py-20 px-6 md:px-12 text-center">
       <h2 className="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4">Our Services</h2>
@@ -59,11 +62,11 @@ export default function ServicesSection() {
               </div>
               <h3 className="font-semibold text-lg text-gray-900 flex items-center">
                 {service.title}
-                {service.premium && (
+                {/* {service.premium && (
                   <span className="ml-2 text-xs bg-yellow-500 text-white font-bold px-2 py-0.5 rounded-full">
                     Premium
                   </span>
-                )}
+                )} */}
               </h3>
             </div>
             <p className="text-sm text-gray-600 mb-4">{service.description}</p>
@@ -73,7 +76,7 @@ export default function ServicesSection() {
                 service.premium ? "text-purple-600" : "text-indigo-600"
               } hover:underline`}
             >
-              {service.link}
+              <button onClick={()=>{navigator(id?service.link:"/login")}}>Learn More</button>
             </a>
           </div>
         ))}

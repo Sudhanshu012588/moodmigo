@@ -390,7 +390,7 @@ const handleChange = (e) => {
                 MoodMigo Mental Health Questionnaire
               </h1>
               <p className="text-gray-800">
-                Please answer the following questions to access you mental health.
+                Please answer the following questions to access your mental health.
               </p>
             </div>
 
@@ -494,10 +494,10 @@ const handleChange = (e) => {
                     className="w-full px-4 py-3 rounded-xl border border-gray-400 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
                   >
                     <option value="">Select</option>
-                    <option>0 - Not at all</option>
-                    <option>1 - Several days</option>
-                    <option>2 - More than half the days</option>
-                    <option>3 - Nearly every day</option>
+                    <option>Not at all</option>
+                    <option>Several days</option>
+                    <option>More than half the days</option>
+                    <option>Nearly every day</option>
                   </select>
                 </div>
               ))}

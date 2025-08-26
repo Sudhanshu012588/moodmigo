@@ -5,10 +5,11 @@ import { login, signup } from "../appwrite/Auth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
-
+import axios from "axios";
 
 
 export default function Signup() {
+  
   const navigator = useNavigate()
   const [user, setUser] = useState({
     name: "",
@@ -23,6 +24,44 @@ export default function Signup() {
       [e.target.name]: e.target.value
     });
   };
+
+  async function sendEmail() {
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/send-email`, {
+      to: user.email,
+      subject: "Welcome to MoodMigo – Your Mental Wellness Companion 💙",
+      text: `Hi ${user.name}
+
+Welcome to MoodMigo 🎉 We’re so glad you’ve joined our community!
+
+At MoodMigo, we believe that mental wellness is a journey — and we’re here to walk beside you every step of the way. With your new account, you can now:
+
+🧘 Book online counselling sessions with certified experts
+
+📝 Journal your thoughts and track your emotions daily
+
+🤖 Chat with MANARAH, our AI wellness assistant
+
+👥 Connect with a supportive community that understands you
+
+✨ Your journey to better mental health starts today.
+
+👉 Get Started with MoodMigo
+
+We’re excited to see how MoodMigo can support your growth and wellness.
+If you ever need help, just reach out — we’re always here for you 💙
+
+Warmly,
+The MoodMigo Team`,
+    });
+
+    console.log("Email sent:", response.data);
+    alert("Email sent successfully!");
+  } catch (error) {
+    console.error("Error sending email:", error);
+    alert("Failed to send email.");
+  }
+}
 
   const handleSubmit = async(e) => {
     e.preventDefault();
@@ -40,6 +79,7 @@ export default function Signup() {
     }
 
     await signup(user.name, user.email, user.password).then(()=>{
+      sendEmail();
       toast.success("Account created successfully, Login to continue");
       navigator('/')}).catch((error)=>{toast.success("Login to continue")});
   };
