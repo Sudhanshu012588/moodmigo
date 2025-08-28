@@ -12,7 +12,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   // Use Zustand's isLoggedIn state
   const isLoggedIn = useStore((state) => state.User.isLoggedIn);
-
+  const User = useStore((state) => state.User);
+    const setUser = useStore((state) => state.setUser);
   // Handle scroll to section
   const handleScrollTo = (id) => {
     setIsOpen(false); // close menu on click
@@ -27,12 +28,32 @@ const Navbar = () => {
       element?.scrollIntoView({ behavior: 'smooth' });
     }
   };
-
-
+const checkSession = async () => {
+      try {
+        const client = new Client()
+        .setEndpoint("https://fra.cloud.appwrite.io/v1").setProject(import.meta.env.VITE_PROJECT_ID)
+        const account = new Account(client)
+        const user = await account.get(); // if session cookie is valid, this works
+        setUser({ isLoggedIn: true, details: user });
+        console.log("User restored from Appwrite session:", user);
+        setUser({
+          id:user.$id,
+          name:user.name,
+          email: user.email,
+          isLoggedIn: true,
+          profilepicture:"",
+          coverimage:""
+        })
+      } catch (err) {
+        console.log("No active session:", err.message);
+        // setUser({ isLoggedIn: false, details: null });
+      }
+    };
+  
   useEffect(() => {
     if(!isLoggedIn){
       if(type == "Client"){
-      account.deleteSession('current')}
+      checkSession();}
     }
   }, [])
   

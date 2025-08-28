@@ -1,23 +1,17 @@
 import {account,ID} from './config';
 import { Navigate } from 'react-router-dom';
 export const login = async (email, password) => {
-    if (!email || !password) {
-        throw new Error("Email and password are required");
-    }
+    if (!email || !password) throw new Error("Email and password are required");
+
     try {
         const session = await account.createEmailPasswordSession(email, password);
-        if (session) {
-            const { jwt } = await account.createJWT();
-            localStorage.setItem("token", jwt);
-            console.log("JWT Token:", jwt);
-            
-        }
+        console.log("Session created:", session);
         return session;
     } catch (error) {
         console.error("Login error:", error);
         throw new Error("Failed to log in: " + error.message);
     }
-}
+};
 
 
 
