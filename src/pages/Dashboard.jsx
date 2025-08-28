@@ -335,9 +335,33 @@ const setprofilepictures = async () => {
     })
   }
 };
+
+
+  const getProfilePicture = async()=>{
+    const client = new Client()
+    .setEndpoint("https://fra.cloud.appwrite.io/v1")
+    .setProject("6820683500148a9573af");
+
+  const database = new Databases(client);
+  const userattribute = await database.listDocuments(
+    '6820add100102346d8b7',
+    '6825e61f00204ab15ecf',
+    [Query.equal('UserId', user.id)]
+  );
+
+  // console.log("--this debug",userattribute)
+
+    setUser({
+      profilepicture:userattribute[0].profilepicture,
+      coverimage:userattribute[0].coverimage
+    })
+  }
+
 useEffect(() => {
 
-
+    if(!user.profilepicture){
+      getProfilePicture();
+    }
     setprofilepictures();
 }, []); // Add `user.id` as a dependency
 
